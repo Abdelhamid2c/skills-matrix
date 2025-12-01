@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import FormInput from './FormInput';
 import FormSelect from './FormSelect';
 
-const CollaboratorForm = () => {
+const CollaboratorForm = ({ currentUser, onBack }) => {
   // État initial du formulaire
   const [formData, setFormData] = useState({
     matricule: '',
@@ -33,14 +33,13 @@ const CollaboratorForm = () => {
   // Options pour les listes déroulantes
   const functionOptions = [
     { value: '', label: 'Sélectionner une fonction' },
-    { value: 'IE Supervisor', label: 'IE Supervisor' },
-    { value: 'IE Responsible', label: 'IE Responsible' },
-    { value: 'PE Responsible', label: 'PE Responsible' },
-    { value: 'PE Supervisor', label: 'PE Supervisor' },
-    { value: 'PE Technician', label: 'PE Technician' },
-    { value: 'PFMEA', label: 'PFMEA' },
-    { value: 'SAP & Data management', label: 'SAP & Data management' },
-    { value: 'Autocad', label: 'Autocad' },
+    { value: 'Ingénieur Qualité', label: 'Ingénieur Qualité' },
+    { value: 'Ingénieur Production', label: 'Ingénieur Production' },
+    { value: 'Ingénieur Méthodes', label: 'Ingénieur Méthodes' },
+    { value: 'Ingénieur Maintenance', label: 'Ingénieur Maintenance' },
+    { value: 'Technicien', label: 'Technicien' },
+    { value: 'Chef de Projet', label: 'Chef de Projet' },
+    { value: 'Responsable d\'Équipe', label: 'Responsable d\'Équipe' },
     { value: 'Autre', label: 'Autre' },
   ];
 
@@ -57,9 +56,8 @@ const CollaboratorForm = () => {
 
   const diplomaOptions = [
     { value: '', label: 'Sélectionner un diplôme' },
-    { value: 'Bac+2 (TS)', label: 'Bac+2 (TS)' },
-    { value: 'Bac+3 (Bachelor)', label: 'Bac+3 (Bachelor)' },
-    { value: 'Bac+4 (Maîtrise)', label: 'Bac+4 (Maîtrise)' },
+    { value: 'Bac+2 (DUT/BTS)', label: 'Bac+2 (DUT/BTS)' },
+    { value: 'Bac+3 (Licence)', label: 'Bac+3 (Licence)' },
     { value: 'Bac+5 (Master/Ingénieur)', label: 'Bac+5 (Master/Ingénieur)' },
     { value: 'Bac+8 (Doctorat)', label: 'Bac+8 (Doctorat)' },
     { value: 'Formation Professionnelle', label: 'Formation Professionnelle' },
@@ -250,6 +248,16 @@ const CollaboratorForm = () => {
           <p className="text-gray-600 mt-2">
             Les informations ont été enregistrées avec succès dans la Skills Matrix
           </p>
+
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mt-6 btn-secondary"
+            >
+              Retour à l'accueil
+            </button>
+          )}
         </div>
       </div>
     );
@@ -258,6 +266,20 @@ const CollaboratorForm = () => {
   return (
     <div className="max-w-4xl mx-auto animate-slide-in">
       <div className="card">
+        {/* Bouton retour */}
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-6 flex items-center text-gray-600 hover:text-yazaki-red transition-colors duration-200"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Retour à l'accueil
+          </button>
+        )}
+
         <div className="mb-8 border-b border-gray-200 pb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
