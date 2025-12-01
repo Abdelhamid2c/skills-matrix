@@ -11,7 +11,7 @@
 /* Styles globaux de l'application */
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased bg-gradient-to-br from-gray-50 to-gray-100;
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -36,7 +36,7 @@
   /* Input de formulaire */
   .form-input {
     @apply w-full px-4 py-3 border border-gray-300 rounded-lg
-           focus:ring-2 focus:ring-yazaki-blue focus:border-transparent
+           focus:ring-2 focus:ring-yazaki-red focus:border-transparent
            transition-all duration-200 ease-in-out
            text-gray-900 placeholder-gray-400;
   }
@@ -49,7 +49,7 @@
   /* Select de formulaire */
   .form-select {
     @apply w-full px-4 py-3 border border-gray-300 rounded-lg
-           focus:ring-2 focus:ring-yazaki-blue focus:border-transparent
+           focus:ring-2 focus:ring-yazaki-red focus:border-transparent
            transition-all duration-200 ease-in-out
            text-gray-900 bg-white cursor-pointer;
   }
@@ -66,31 +66,47 @@
 
   /* Bouton primaire */
   .btn-primary {
-    @apply w-full bg-yazaki-blue text-white py-3 px-6 rounded-lg
-           font-semibold hover:bg-blue-700
-           focus:outline-none focus:ring-2 focus:ring-yazaki-blue focus:ring-offset-2
+    @apply w-full bg-yazaki-red text-white py-3 px-6 rounded-lg
+           font-semibold hover:bg-yazaki-dark-red
+           focus:outline-none focus:ring-2 focus:ring-yazaki-red focus:ring-offset-2
            transition-all duration-200 ease-in-out
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           shadow-lg hover:shadow-xl;
   }
 
   /* Bouton secondaire */
   .btn-secondary {
-    @apply w-full bg-white text-yazaki-blue border-2 border-yazaki-blue
+    @apply w-full bg-white text-yazaki-red border-2 border-yazaki-red
            py-3 px-6 rounded-lg font-semibold
-           hover:bg-yazaki-blue hover:text-white
-           focus:outline-none focus:ring-2 focus:ring-yazaki-blue focus:ring-offset-2
+           hover:bg-yazaki-red hover:text-white
+           focus:outline-none focus:ring-2 focus:ring-yazaki-red focus:ring-offset-2
            transition-all duration-200 ease-in-out;
   }
 
   /* Carte */
   .card {
-    @apply bg-white rounded-xl shadow-xl p-8;
+    @apply bg-white rounded-xl shadow-yazaki p-8 border border-gray-100;
   }
 
   /* Badge de succès */
   .badge-success {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
            bg-green-100 text-green-800;
+  }
+
+  /* En-tête de section */
+  .section-header {
+    @apply text-lg font-semibold text-gray-900 mb-4 flex items-center;
+  }
+
+  /* Icône d'en-tête de section */
+  .section-icon {
+    @apply w-5 h-5 mr-2 text-yazaki-red;
+  }
+
+  /* Conteneur de section */
+  .section-container {
+    @apply bg-gradient-to-br from-gray-50 to-white p-6 rounded-lg border border-gray-200;
   }
 }
 
@@ -124,4 +140,35 @@
       transform: translateY(0);
     }
   }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-yazaki-red rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-yazaki-dark-red;
 }

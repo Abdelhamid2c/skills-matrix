@@ -191,13 +191,6 @@ const CollaboratorForm = () => {
       // Simulation d'un délai d'API
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // TODO: Remplacer par votre appel API réel
-      // const response = await fetch('/api/collaborators', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(finalData)
-      // });
-
       setIsSubmitted(true);
 
       // Réinitialiser le formulaire après 3 secondes
@@ -235,21 +228,25 @@ const CollaboratorForm = () => {
         <div className="card text-center">
           {/* Icône de succès */}
           <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Collaborateur enregistré avec succès !
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            Collaborateur enregistré !
           </h2>
-          <p className="text-gray-600 mb-4">
-            Matricule: <span className="font-semibold text-yazaki-blue">{formData.matricule}</span>
+          <div className="mb-4 p-4 bg-yazaki-light-gray rounded-lg">
+            <p className="text-sm text-gray-600 mb-1">Matricule</p>
+            <p className="text-2xl font-bold text-yazaki-red">{formData.matricule}</p>
+          </div>
+          <p className="text-lg text-gray-700">
+            <span className="font-semibold">{formData.firstName} {formData.lastName}</span>
           </p>
-          <p className="text-gray-600">
-            Les informations de {formData.firstName} {formData.lastName} ont été enregistrées.
+          <p className="text-gray-600 mt-2">
+            Les informations ont été enregistrées avec succès dans la Skills Matrix
           </p>
         </div>
       </div>
@@ -257,30 +254,29 @@ const CollaboratorForm = () => {
   }
 
   return (
-    <div className="max-w-3xl mx-auto animate-slide-in">
+    <div className="max-w-4xl mx-auto animate-slide-in">
       <div className="card">
-        {/* Titre du formulaire */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+        <div className="mb-8 border-b border-gray-200 pb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+            <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
             Nouveau Collaborateur
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 ml-5">
             Remplissez les informations du collaborateur pour créer son profil dans la Skills Matrix
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section: Identification */}
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="section-container">
+            <h3 className="section-header">
+              <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
               </svg>
               Identification
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Matricule */}
               <div className="md:col-span-2">
                 <FormInput
                   label="Matricule"
@@ -293,11 +289,10 @@ const CollaboratorForm = () => {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Format: 4 à 10 caractères alphanumériques majuscules (identifiant unique)
+                  📌 Format: 4 à 10 caractères alphanumériques majuscules (identifiant unique)
                 </p>
               </div>
 
-              {/* Prénom */}
               <FormInput
                 label="Prénom"
                 name="firstName"
@@ -309,7 +304,6 @@ const CollaboratorForm = () => {
                 required
               />
 
-              {/* Nom */}
               <FormInput
                 label="Nom"
                 name="lastName"
@@ -324,16 +318,15 @@ const CollaboratorForm = () => {
           </div>
 
           {/* Section: Informations Professionnelles */}
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="section-container">
+            <h3 className="section-header">
+              <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               Informations Professionnelles
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Fonction */}
               <div>
                 <FormSelect
                   label="Fonction"
@@ -346,7 +339,6 @@ const CollaboratorForm = () => {
                 />
               </div>
 
-              {/* Fonction personnalisée */}
               {formData.function === 'Autre' && (
                 <FormInput
                   label="Précisez la fonction"
@@ -360,7 +352,6 @@ const CollaboratorForm = () => {
                 />
               )}
 
-              {/* Projet/Famille */}
               <div className={formData.function === 'Autre' ? '' : 'md:col-start-1'}>
                 <FormSelect
                   label="Projet / Famille"
@@ -373,7 +364,6 @@ const CollaboratorForm = () => {
                 />
               </div>
 
-              {/* Projet/Famille personnalisé */}
               {formData.projectFamily === 'Autre' && (
                 <FormInput
                   label="Précisez le projet/famille"
@@ -390,9 +380,9 @@ const CollaboratorForm = () => {
           </div>
 
           {/* Section: Formation et Expérience */}
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="section-container">
+            <h3 className="section-header">
+              <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M12 14l9-5-9-5-9 5 9 5z" />
                 <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
@@ -401,7 +391,6 @@ const CollaboratorForm = () => {
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Diplôme */}
               <div className="md:col-span-2">
                 <FormSelect
                   label="Diplôme"
@@ -414,7 +403,6 @@ const CollaboratorForm = () => {
                 />
               </div>
 
-              {/* Diplôme personnalisé */}
               {formData.diploma === 'Autre' && (
                 <div className="md:col-span-2">
                   <FormInput
@@ -430,9 +418,8 @@ const CollaboratorForm = () => {
                 </div>
               )}
 
-              {/* Expérience totale */}
               <FormInput
-                label="Expérience Totale"
+                label="Expérience Totale (années)"
                 name="experience"
                 type="number"
                 value={formData.experience}
@@ -444,9 +431,8 @@ const CollaboratorForm = () => {
                 required
               />
 
-              {/* Ancienneté Yazaki */}
               <FormInput
-                label="Ancienneté Yazaki"
+                label="Ancienneté Yazaki (années)"
                 name="yazakiSeniority"
                 type="number"
                 value={formData.yazakiSeniority}
@@ -462,7 +448,7 @@ const CollaboratorForm = () => {
 
           {/* Erreur de soumission */}
           {errors.submit && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
               <p className="text-red-800 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
