@@ -3,14 +3,16 @@
  * Gère la navigation entre les différentes pages
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Welcome from './components/Welcome';
 import Login from './components/Login';
+import Loading from './components/Loading';
+import Questionnaire from './components/Questionnaire';
 import CollaboratorForm from './components/CollaboratorForm';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('welcome'); // welcome, login, form
+  const [currentPage, setCurrentPage] = useState('welcome'); // welcome, login, loading, questionnaire, form
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -42,8 +44,22 @@ function App() {
     console.log('Login réussi:', userData);
     setIsAuthenticated(true);
     setCurrentUser(userData);
-    setCurrentPage('form');
+
+    // Afficher la page de chargement
+    setCurrentPage('loading');
   };
+
+  // Effet pour passer de la page loading au questionnaire après 3 secondes
+  useEffect(() => {
+    if (currentPage === 'loading') {
+      const timer = setTimeout(() => {
+        console.log('Redirection vers le questionnaire');
+        setCurrentPage('questionnaire');
+      }, 3000); // 3 secondes de chargement
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
 
   // Debug: Afficher la page actuelle
   console.log('Page actuelle:', currentPage);
@@ -56,7 +72,7 @@ function App() {
         onSignInClick={handleSignInClick}
         onBackClick={handleBackToWelcome}
         showAuthButtons={currentPage === 'welcome'}
-        showBackButton={currentPage !== 'welcome'}
+        showBackButton={currentPage !== 'welcome' && currentPage !== 'loading'}
       />
 
       {/* Contenu principal - Affichage conditionnel selon la page active */}
@@ -72,6 +88,17 @@ function App() {
           />
         )}
 
+        {currentPage === 'loading' && (
+          <Loading userName={currentUser?.matricule} />
+        )}
+
+        {currentPage === 'questionnaire' && (
+          <Questionnaire
+            currentUser={currentUser}
+            onBack={handleBackToWelcome}
+          />
+        )}
+
         {currentPage === 'form' && (
           <CollaboratorForm
             currentUser={currentUser}
@@ -84,7 +111,7 @@ function App() {
       <footer className="text-center py-6 text-gray-500 text-sm border-t border-gray-200 mt-12">
         <p>© 2025 Yazaki Morocco Meknes - Skills Matrix Application</p>
         <p className="mt-1 text-xs">Tous droits réservés</p>
-        {isAuthenticated && currentUser && (
+        {isAuthenticated && currentUser && currentPage !== 'loading' && (
           <p className="mt-2 text-xs text-yazaki-red font-semibold">
             Connecté en tant que: {currentUser.matricule}
           </p>
