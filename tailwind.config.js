@@ -2,23 +2,18 @@
 module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
-    "./public/index.html"
   ],
   theme: {
     extend: {
       colors: {
-        // Couleurs personnalisées Yazaki
-        yazaki: {
-          primary: '#1e40af',    // Bleu principal
-          secondary: '#3b82f6',  // Bleu secondaire
-          accent: '#f59e0b',     // Orange accent
-          dark: '#1f2937',       // Gris foncé
-          light: '#f3f4f6',      // Gris clair
-        }
+        'yazaki-blue': '#003DA5',
+        'yazaki-orange': '#FF6B35',
+        'yazaki-light-blue': '#0066CC',
+        'yazaki-dark-blue': '#002B73',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-      }
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
     },
   },
   plugins: [],

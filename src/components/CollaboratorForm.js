@@ -1,489 +1,500 @@
 /**
- * Composant CollaboratorForm
- * Formulaire principal pour la saisie des informations d'un collaborateur
- * 
- * Ce composant gère :
- * - L'état du formulaire via useState
- * - La validation des champs
- * - La soumission des données
+ * CollaboratorForm - Formulaire de saisie des informations collaborateur
+ * Gère la saisie, la validation et la soumission des données
  */
 
 import React, { useState } from 'react';
 import FormInput from './FormInput';
 import FormSelect from './FormSelect';
 
-// Options prédéfinies pour les champs de sélection
-const FUNCTION_OPTIONS = [
-  { value: '', label: 'Sélectionnez une fonction' },
-  { value: 'software_engineer', label: 'Software Engineer' },
-  { value: 'tech_lead', label: 'Tech Lead' },
-  { value: 'project_manager', label: 'Project Manager' },
-  { value: 'qa_engineer', label: 'QA Engineer' },
-  { value: 'devops_engineer', label: 'DevOps Engineer' },
-  { value: 'data_analyst', label: 'Data Analyst' },
-  { value: 'ui_ux_designer', label: 'UI/UX Designer' },
-  { value: 'scrum_master', label: 'Scrum Master' },
-  { value: 'other', label: 'Autre' },
-];
-
-const PROJECT_OPTIONS = [
-  { value: '', label: 'Sélectionnez un projet/famille' },
-  { value: 'automotive', label: 'Automotive' },
-  { value: 'harness_design', label: 'Harness Design' },
-  { value: 'manufacturing', label: 'Manufacturing' },
-  { value: 'quality', label: 'Quality' },
-  { value: 'logistics', label: 'Logistics' },
-  { value: 'it_services', label: 'IT Services' },
-  { value: 'hr', label: 'Human Resources' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'other', label: 'Autre' },
-];
-
-const DIPLOMA_OPTIONS = [
-  { value: '', label: 'Sélectionnez un diplôme' },
-  { value: 'bac', label: 'Baccalauréat' },
-  { value: 'bac_plus_2', label: 'Bac +2 (BTS/DUT)' },
-  { value: 'licence', label: 'Licence (Bac +3)' },
-  { value: 'master', label: 'Master (Bac +5)' },
-  { value: 'ingenieur', label: 'Diplôme d\'Ingénieur' },
-  { value: 'doctorat', label: 'Doctorat' },
-  { value: 'other', label: 'Autre' },
-];
-
-// État initial du formulaire
-const INITIAL_FORM_STATE = {
-  firstName: '',
-  lastName: '',
-  function: '',
-  customFunction: '',
-  project: '',
-  customProject: '',
-  diploma: '',
-  customDiploma: '',
-  experience: '',
-  yazakiSeniority: '',
-};
-
-// État initial des erreurs
-const INITIAL_ERRORS_STATE = {
-  firstName: '',
-  lastName: '',
-  function: '',
-  project: '',
-  diploma: '',
-  experience: '',
-  yazakiSeniority: '',
-};
-
 const CollaboratorForm = () => {
-  // État pour les données du formulaire
-  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
-  
-  // État pour les messages d'erreur
-  const [errors, setErrors] = useState(INITIAL_ERRORS_STATE);
-  
-  // État pour indiquer si le formulaire a été soumis
+  // État initial du formulaire
+  const [formData, setFormData] = useState({
+    matricule: '',
+    firstName: '',
+    lastName: '',
+    function: '',
+    customFunction: '',
+    projectFamily: '',
+    customProjectFamily: '',
+    diploma: '',
+    customDiploma: '',
+    experience: '',
+    yazakiSeniority: '',
+  });
+
+  // État des erreurs de validation
+  const [errors, setErrors] = useState({});
+
+  // État de soumission
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  
-  // État pour le chargement
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Options pour les listes déroulantes
+  const functionOptions = [
+    { value: '', label: 'Sélectionner une fonction' },
+    { value: 'Ingénieur Qualité', label: 'Ingénieur Qualité' },
+    { value: 'Ingénieur Production', label: 'Ingénieur Production' },
+    { value: 'Ingénieur Méthodes', label: 'Ingénieur Méthodes' },
+    { value: 'Ingénieur Maintenance', label: 'Ingénieur Maintenance' },
+    { value: 'Technicien', label: 'Technicien' },
+    { value: 'Chef de Projet', label: 'Chef de Projet' },
+    { value: 'Responsable d\'Équipe', label: 'Responsable d\'Équipe' },
+    { value: 'Autre', label: 'Autre' },
+  ];
+
+  const projectFamilyOptions = [
+    { value: '', label: 'Sélectionner un projet/famille' },
+    { value: 'Wire Harness', label: 'Wire Harness' },
+    { value: 'Components', label: 'Components' },
+    { value: 'Electrical Distribution Systems', label: 'Electrical Distribution Systems' },
+    { value: 'Quality Assurance', label: 'Quality Assurance' },
+    { value: 'Production', label: 'Production' },
+    { value: 'Engineering', label: 'Engineering' },
+    { value: 'Autre', label: 'Autre' },
+  ];
+
+  const diplomaOptions = [
+    { value: '', label: 'Sélectionner un diplôme' },
+    { value: 'Bac+2 (DUT/BTS)', label: 'Bac+2 (DUT/BTS)' },
+    { value: 'Bac+3 (Licence)', label: 'Bac+3 (Licence)' },
+    { value: 'Bac+5 (Master/Ingénieur)', label: 'Bac+5 (Master/Ingénieur)' },
+    { value: 'Bac+8 (Doctorat)', label: 'Bac+8 (Doctorat)' },
+    { value: 'Formation Professionnelle', label: 'Formation Professionnelle' },
+    { value: 'Autre', label: 'Autre' },
+  ];
 
   /**
-   * Gère les changements dans les champs du formulaire
-   * @param {Event} e - Événement de changement
+   * Gestion des changements dans les champs du formulaire
    */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
-    // Mise à jour de la valeur du champ
+
     setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
-    
-    // Effacement de l'erreur lors de la modification
+
+    // Effacer l'erreur du champ modifié
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
-        [name]: '',
+        [name]: ''
       }));
     }
   };
 
   /**
-   * Valide tous les champs du formulaire
-   * @returns {boolean} - True si le formulaire est valide
+   * Validation du formulaire
+   * @returns {boolean} - true si le formulaire est valide
    */
   const validateForm = () => {
     const newErrors = {};
-    
+
+    // Validation du matricule (unique, requis, format)
+    if (!formData.matricule.trim()) {
+      newErrors.matricule = 'Le matricule est requis';
+    } else if (!/^[A-Z0-9]{4,10}$/.test(formData.matricule)) {
+      newErrors.matricule = 'Le matricule doit contenir 4 à 10 caractères alphanumériques majuscules (ex: YMM12345)';
+    }
+
     // Validation du prénom
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'Le prénom est requis';
     } else if (formData.firstName.trim().length < 2) {
       newErrors.firstName = 'Le prénom doit contenir au moins 2 caractères';
-    } else if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(formData.firstName)) {
+    } else if (!/^[a-zA-ZÀ-ÿ\s-]+$/.test(formData.firstName)) {
       newErrors.firstName = 'Le prénom ne doit contenir que des lettres';
     }
-    
+
     // Validation du nom
     if (!formData.lastName.trim()) {
       newErrors.lastName = 'Le nom est requis';
     } else if (formData.lastName.trim().length < 2) {
       newErrors.lastName = 'Le nom doit contenir au moins 2 caractères';
-    } else if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(formData.lastName)) {
+    } else if (!/^[a-zA-ZÀ-ÿ\s-]+$/.test(formData.lastName)) {
       newErrors.lastName = 'Le nom ne doit contenir que des lettres';
     }
-    
+
     // Validation de la fonction
     if (!formData.function) {
       newErrors.function = 'La fonction est requise';
-    } else if (formData.function === 'other' && !formData.customFunction.trim()) {
-      newErrors.function = 'Veuillez préciser la fonction';
+    } else if (formData.function === 'Autre' && !formData.customFunction.trim()) {
+      newErrors.customFunction = 'Veuillez préciser la fonction';
     }
-    
+
     // Validation du projet/famille
-    if (!formData.project) {
-      newErrors.project = 'Le projet/famille est requis';
-    } else if (formData.project === 'other' && !formData.customProject.trim()) {
-      newErrors.project = 'Veuillez préciser le projet/famille';
+    if (!formData.projectFamily) {
+      newErrors.projectFamily = 'Le projet/famille est requis';
+    } else if (formData.projectFamily === 'Autre' && !formData.customProjectFamily.trim()) {
+      newErrors.customProjectFamily = 'Veuillez préciser le projet/famille';
     }
-    
+
     // Validation du diplôme
     if (!formData.diploma) {
       newErrors.diploma = 'Le diplôme est requis';
-    } else if (formData.diploma === 'other' && !formData.customDiploma.trim()) {
-      newErrors.diploma = 'Veuillez préciser le diplôme';
+    } else if (formData.diploma === 'Autre' && !formData.customDiploma.trim()) {
+      newErrors.customDiploma = 'Veuillez préciser le diplôme';
     }
-    
+
     // Validation de l'expérience
     if (!formData.experience) {
       newErrors.experience = 'L\'expérience est requise';
-    } else if (isNaN(formData.experience) || Number(formData.experience) < 0) {
-      newErrors.experience = 'L\'expérience doit être un nombre positif';
-    } else if (Number(formData.experience) > 50) {
-      newErrors.experience = 'L\'expérience semble incorrecte (max 50 ans)';
+    } else if (parseFloat(formData.experience) < 0) {
+      newErrors.experience = 'L\'expérience ne peut pas être négative';
+    } else if (parseFloat(formData.experience) > 50) {
+      newErrors.experience = 'L\'expérience ne peut pas dépasser 50 ans';
     }
-    
+
     // Validation de l'ancienneté Yazaki
     if (!formData.yazakiSeniority) {
       newErrors.yazakiSeniority = 'L\'ancienneté Yazaki est requise';
-    } else if (isNaN(formData.yazakiSeniority) || Number(formData.yazakiSeniority) < 0) {
-      newErrors.yazakiSeniority = 'L\'ancienneté doit être un nombre positif';
-    } else if (Number(formData.yazakiSeniority) > Number(formData.experience)) {
-      newErrors.yazakiSeniority = 'L\'ancienneté ne peut pas dépasser l\'expérience totale';
+    } else if (parseFloat(formData.yazakiSeniority) < 0) {
+      newErrors.yazakiSeniority = 'L\'ancienneté ne peut pas être négative';
+    } else if (parseFloat(formData.yazakiSeniority) > parseFloat(formData.experience)) {
+      newErrors.yazakiSeniority = 'L\'ancienneté Yazaki ne peut pas dépasser l\'expérience totale';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   /**
-   * Gère la soumission du formulaire
-   * @param {Event} e - Événement de soumission
+   * Soumission du formulaire
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validation du formulaire
+
+    // Validation avant soumission
     if (!validateForm()) {
       return;
     }
-    
-    setIsLoading(true);
-    
-    // Simulation d'une requête API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Préparation des données finales
-    const finalData = {
-      ...formData,
-      function: formData.function === 'other' ? formData.customFunction : formData.function,
-      project: formData.project === 'other' ? formData.customProject : formData.project,
-      diploma: formData.diploma === 'other' ? formData.customDiploma : formData.diploma,
-      experience: Number(formData.experience),
-      yazakiSeniority: Number(formData.yazakiSeniority),
-    };
-    
-    console.log('Données du collaborateur:', finalData);
-    
-    setIsLoading(false);
-    setIsSubmitted(true);
+
+    setIsSubmitting(true);
+
+    // Simulation d'un appel API (à remplacer par votre vraie API)
+    try {
+      // Préparer les données finales
+      const finalData = {
+        matricule: formData.matricule.toUpperCase(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        function: formData.function === 'Autre' ? formData.customFunction : formData.function,
+        projectFamily: formData.projectFamily === 'Autre' ? formData.customProjectFamily : formData.projectFamily,
+        diploma: formData.diploma === 'Autre' ? formData.customDiploma : formData.diploma,
+        experience: parseFloat(formData.experience),
+        yazakiSeniority: parseFloat(formData.yazakiSeniority),
+      };
+
+      console.log('Données du collaborateur:', finalData);
+
+      // Simulation d'un délai d'API
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // TODO: Remplacer par votre appel API réel
+      // const response = await fetch('/api/collaborators', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(finalData)
+      // });
+
+      setIsSubmitted(true);
+
+      // Réinitialiser le formulaire après 3 secondes
+      setTimeout(() => {
+        setFormData({
+          matricule: '',
+          firstName: '',
+          lastName: '',
+          function: '',
+          customFunction: '',
+          projectFamily: '',
+          customProjectFamily: '',
+          diploma: '',
+          customDiploma: '',
+          experience: '',
+          yazakiSeniority: '',
+        });
+        setIsSubmitted(false);
+      }, 3000);
+
+    } catch (error) {
+      console.error('Erreur lors de la soumission:', error);
+      setErrors({ submit: 'Une erreur est survenue lors de la soumission' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   /**
-   * Réinitialise le formulaire
+   * Écran de succès après soumission
    */
-  const handleReset = () => {
-    setFormData(INITIAL_FORM_STATE);
-    setErrors(INITIAL_ERRORS_STATE);
-    setIsSubmitted(false);
-  };
-
-  // Affichage du message de succès après soumission
   if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
         <div className="card text-center">
           {/* Icône de succès */}
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg 
-              className="w-10 h-10 text-green-500" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M5 13l4 4L19 7" 
-              />
-            </svg>
-          </div>
-          
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Collaborateur enregistré !
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Les informations de <span className="font-semibold">{formData.firstName} {formData.lastName}</span> ont été enregistrées avec succès.
-          </p>
-          
-          {/* Résumé des informations */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
-            <h3 className="font-semibold text-gray-700 mb-3">Résumé :</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-gray-500">Fonction :</span>
-              <span className="text-gray-800">
-                {formData.function === 'other' 
-                  ? formData.customFunction 
-                  : FUNCTION_OPTIONS.find(f => f.value === formData.function)?.label}
-              </span>
-              <span className="text-gray-500">Projet/Famille :</span>
-              <span className="text-gray-800">
-                {formData.project === 'other' 
-                  ? formData.customProject 
-                  : PROJECT_OPTIONS.find(p => p.value === formData.project)?.label}
-              </span>
-              <span className="text-gray-500">Expérience :</span>
-              <span className="text-gray-800">{formData.experience} ans</span>
-              <span className="text-gray-500">Ancienneté Yazaki :</span>
-              <span className="text-gray-800">{formData.yazakiSeniority} ans</span>
+          <div className="mb-6">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
           </div>
-          
-          <div className="flex gap-4">
-            <button 
-              onClick={handleReset}
-              className="btn-primary flex-1"
-            >
-              Ajouter un autre collaborateur
-            </button>
-            <button 
-              onClick={() => alert('Fonctionnalité à venir : Évaluation technique')}
-              className="btn-secondary flex-1"
-            >
-              Passer à l'évaluation
-            </button>
-          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Collaborateur enregistré avec succès !
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Matricule: <span className="font-semibold text-yazaki-blue">{formData.matricule}</span>
+          </p>
+          <p className="text-gray-600">
+            Les informations de {formData.firstName} {formData.lastName} ont été enregistrées.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto animate-slide-up">
+    <div className="max-w-3xl mx-auto animate-slide-in">
       <div className="card">
-        {/* En-tête du formulaire */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+        {/* Titre du formulaire */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Nouveau Collaborateur
           </h2>
-          <p className="text-gray-500">
-            Remplissez les informations ci-dessous pour créer un profil collaborateur
+          <p className="text-gray-600">
+            Remplissez les informations du collaborateur pour créer son profil dans la Skills Matrix
           </p>
         </div>
-        
-        {/* Formulaire */}
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Section Identité */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-yazaki-primary text-white rounded-lg flex items-center justify-center text-sm">1</span>
-              Identité
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Section: Identification */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+              </svg>
+              Identification
             </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Matricule */}
+              <div className="md:col-span-2">
+                <FormInput
+                  label="Matricule"
+                  name="matricule"
+                  type="text"
+                  value={formData.matricule}
+                  onChange={handleChange}
+                  placeholder="Ex: YMM12345"
+                  error={errors.matricule}
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Format: 4 à 10 caractères alphanumériques majuscules (identifiant unique)
+                </p>
+              </div>
+
+              {/* Prénom */}
               <FormInput
                 label="Prénom"
                 name="firstName"
+                type="text"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="Ex: Mohammed"
+                placeholder="Entrez le prénom"
                 error={errors.firstName}
                 required
               />
-              
+
+              {/* Nom */}
               <FormInput
                 label="Nom"
                 name="lastName"
+                type="text"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="Ex: Alaoui"
+                placeholder="Entrez le nom"
                 error={errors.lastName}
                 required
               />
             </div>
           </div>
-          
-          {/* Section Poste */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-yazaki-primary text-white rounded-lg flex items-center justify-center text-sm">2</span>
-              Poste
+
+          {/* Section: Informations Professionnelles */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Informations Professionnelles
             </h3>
-            
-            <div className="space-y-4">
-              <FormSelect
-                label="Fonction"
-                name="function"
-                value={formData.function}
-                onChange={handleChange}
-                options={FUNCTION_OPTIONS}
-                error={errors.function}
-                required
-              />
-              
-              {/* Champ personnalisé si "Autre" est sélectionné */}
-              {formData.function === 'other' && (
-                <FormInput
-                  label="Précisez la fonction"
-                  name="customFunction"
-                  value={formData.customFunction}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Fonction */}
+              <div>
+                <FormSelect
+                  label="Fonction"
+                  name="function"
+                  value={formData.function}
                   onChange={handleChange}
-                  placeholder="Entrez la fonction"
-                  error={errors.function && formData.function === 'other' ? errors.function : ''}
-                  required
-                />
-              )}
-              
-              <FormSelect
-                label="Projet / Famille"
-                name="project"
-                value={formData.project}
-                onChange={handleChange}
-                options={PROJECT_OPTIONS}
-                error={errors.project}
-                required
-              />
-              
-              {formData.project === 'other' && (
-                <FormInput
-                  label="Précisez le projet/famille"
-                  name="customProject"
-                  value={formData.customProject}
-                  onChange={handleChange}
-                  placeholder="Entrez le projet/famille"
-                  error={errors.project && formData.project === 'other' ? errors.project : ''}
-                  required
-                />
-              )}
-            </div>
-          </div>
-          
-          {/* Section Formation & Expérience */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <span className="w-8 h-8 bg-yazaki-primary text-white rounded-lg flex items-center justify-center text-sm">3</span>
-              Formation & Expérience
-            </h3>
-            
-            <div className="space-y-4">
-              <FormSelect
-                label="Diplôme"
-                name="diploma"
-                value={formData.diploma}
-                onChange={handleChange}
-                options={DIPLOMA_OPTIONS}
-                error={errors.diploma}
-                required
-              />
-              
-              {formData.diploma === 'other' && (
-                <FormInput
-                  label="Précisez le diplôme"
-                  name="customDiploma"
-                  value={formData.customDiploma}
-                  onChange={handleChange}
-                  placeholder="Entrez le diplôme"
-                  error={errors.diploma && formData.diploma === 'other' ? errors.diploma : ''}
-                  required
-                />
-              )}
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormInput
-                  label="Expérience (années)"
-                  name="experience"
-                  type="number"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  placeholder="Ex: 5"
-                  min="0"
-                  max="50"
-                  error={errors.experience}
-                  required
-                />
-                
-                <FormInput
-                  label="Ancienneté Yazaki (années)"
-                  name="yazakiSeniority"
-                  type="number"
-                  value={formData.yazakiSeniority}
-                  onChange={handleChange}
-                  placeholder="Ex: 3"
-                  min="0"
-                  max="50"
-                  error={errors.yazakiSeniority}
+                  options={functionOptions}
+                  error={errors.function}
                   required
                 />
               </div>
+
+              {/* Fonction personnalisée */}
+              {formData.function === 'Autre' && (
+                <FormInput
+                  label="Précisez la fonction"
+                  name="customFunction"
+                  type="text"
+                  value={formData.customFunction}
+                  onChange={handleChange}
+                  placeholder="Entrez la fonction"
+                  error={errors.customFunction}
+                  required
+                />
+              )}
+
+              {/* Projet/Famille */}
+              <div className={formData.function === 'Autre' ? '' : 'md:col-start-1'}>
+                <FormSelect
+                  label="Projet / Famille"
+                  name="projectFamily"
+                  value={formData.projectFamily}
+                  onChange={handleChange}
+                  options={projectFamilyOptions}
+                  error={errors.projectFamily}
+                  required
+                />
+              </div>
+
+              {/* Projet/Famille personnalisé */}
+              {formData.projectFamily === 'Autre' && (
+                <FormInput
+                  label="Précisez le projet/famille"
+                  name="customProjectFamily"
+                  type="text"
+                  value={formData.customProjectFamily}
+                  onChange={handleChange}
+                  placeholder="Entrez le projet/famille"
+                  error={errors.customProjectFamily}
+                  required
+                />
+              )}
             </div>
           </div>
-          
-          {/* Boutons d'action */}
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="btn-secondary flex-1"
-            >
-              Réinitialiser
-            </button>
-            
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-primary flex-1 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Enregistrement...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Enregistrer le collaborateur
-                </>
+
+          {/* Section: Formation et Expérience */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-yazaki-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+              </svg>
+              Formation et Expérience
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Diplôme */}
+              <div className="md:col-span-2">
+                <FormSelect
+                  label="Diplôme"
+                  name="diploma"
+                  value={formData.diploma}
+                  onChange={handleChange}
+                  options={diplomaOptions}
+                  error={errors.diploma}
+                  required
+                />
+              </div>
+
+              {/* Diplôme personnalisé */}
+              {formData.diploma === 'Autre' && (
+                <div className="md:col-span-2">
+                  <FormInput
+                    label="Précisez le diplôme"
+                    name="customDiploma"
+                    type="text"
+                    value={formData.customDiploma}
+                    onChange={handleChange}
+                    placeholder="Entrez le diplôme"
+                    error={errors.customDiploma}
+                    required
+                  />
+                </div>
               )}
-            </button>
+
+              {/* Expérience totale */}
+              <FormInput
+                label="Expérience Totale"
+                name="experience"
+                type="number"
+                value={formData.experience}
+                onChange={handleChange}
+                placeholder="0"
+                error={errors.experience}
+                min="0"
+                max="50"
+                required
+              />
+
+              {/* Ancienneté Yazaki */}
+              <FormInput
+                label="Ancienneté Yazaki"
+                name="yazakiSeniority"
+                type="number"
+                value={formData.yazakiSeniority}
+                onChange={handleChange}
+                placeholder="0"
+                error={errors.yazakiSeniority}
+                min="0"
+                max={formData.experience || "50"}
+                required
+              />
+            </div>
           </div>
+
+          {/* Erreur de soumission */}
+          {errors.submit && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                {errors.submit}
+              </p>
+            </div>
+          )}
+
+          {/* Bouton de soumission */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="btn-primary flex items-center justify-center"
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Enregistrement en cours...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Enregistrer le Collaborateur
+              </>
+            )}
+          </button>
         </form>
       </div>
     </div>
