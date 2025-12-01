@@ -33,13 +33,14 @@ const CollaboratorForm = () => {
   // Options pour les listes déroulantes
   const functionOptions = [
     { value: '', label: 'Sélectionner une fonction' },
-    { value: 'Ingénieur Qualité', label: 'Ingénieur Qualité' },
-    { value: 'Ingénieur Production', label: 'Ingénieur Production' },
-    { value: 'Ingénieur Méthodes', label: 'Ingénieur Méthodes' },
-    { value: 'Ingénieur Maintenance', label: 'Ingénieur Maintenance' },
-    { value: 'Technicien', label: 'Technicien' },
-    { value: 'Chef de Projet', label: 'Chef de Projet' },
-    { value: 'Responsable d\'Équipe', label: 'Responsable d\'Équipe' },
+    { value: 'IE Supervisor', label: 'IE Supervisor' },
+    { value: 'IE Responsible', label: 'IE Responsible' },
+    { value: 'PE Responsible', label: 'PE Responsible' },
+    { value: 'PE Supervisor', label: 'PE Supervisor' },
+    { value: 'PE Technician', label: 'PE Technician' },
+    { value: 'PFMEA', label: 'PFMEA' },
+    { value: 'SAP & Data management', label: 'SAP & Data management' },
+    { value: 'Autocad', label: 'Autocad' },
     { value: 'Autre', label: 'Autre' },
   ];
 
@@ -56,8 +57,9 @@ const CollaboratorForm = () => {
 
   const diplomaOptions = [
     { value: '', label: 'Sélectionner un diplôme' },
-    { value: 'Bac+2 (DUT/BTS)', label: 'Bac+2 (DUT/BTS)' },
-    { value: 'Bac+3 (Licence)', label: 'Bac+3 (Licence)' },
+    { value: 'Bac+2 (TS)', label: 'Bac+2 (TS)' },
+    { value: 'Bac+3 (Bachelor)', label: 'Bac+3 (Bachelor)' },
+    { value: 'Bac+4 (Maîtrise)', label: 'Bac+4 (Maîtrise)' },
     { value: 'Bac+5 (Master/Ingénieur)', label: 'Bac+5 (Master/Ingénieur)' },
     { value: 'Bac+8 (Doctorat)', label: 'Bac+8 (Doctorat)' },
     { value: 'Formation Professionnelle', label: 'Formation Professionnelle' },
