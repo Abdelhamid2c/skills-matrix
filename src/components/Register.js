@@ -1,16 +1,17 @@
 /**
- * CollaboratorForm - Formulaire avec authentification automatique
+ * Register - Page d'inscription avec toutes les informations
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import FormInput from './FormInput';
 import FormSelect from './FormSelect';
-import { createCollaborator } from '../api/collaboratorService';
-import { register, getCurrentUser, isAuthenticated } from '../api/authService';
+import { register } from '../api/authService';
 
-const CollaboratorForm = ({ currentUser, onBack }) => {
+const Register = ({ onBack, onRegisterSuccess }) => {
   const [formData, setFormData] = useState({
     matricule: '',
+    password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
     function: '',
@@ -25,18 +26,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submittedData, setSubmittedData] = useState(null);
-  const [userAuthenticated, setUserAuthenticated] = useState(false);
-
-  useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
-    if (isAuthenticated()) {
-      setUserAuthenticated(true);
-      const user = getCurrentUser();
-      console.log('👤 Utilisateur déjà connecté:', user);
-    }
-  }, []);
 
   const functionOptions = [
     { value: '', label: 'Sélectionner une fonction' },
@@ -73,10 +62,11 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+    const finalValue = name === 'matricule' ? value.toUpperCase() : value;
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: finalValue
     }));
 
     if (errors[name]) {
@@ -93,7 +83,15 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     if (!formData.matricule.trim()) {
       newErrors.matricule = 'Le matricule est requis';
     } else if (!/^[A-Z0-9]{4,10}$/.test(formData.matricule)) {
-      newErrors.matricule = 'Le matricule doit contenir 4 à 10 caractères alphanumériques majuscules';
+      newErrors.matricule = 'Format invalide (4 à 10 caractères alphanumériques)';
+    }
+
+    if (!formData.password || formData.password.length < 4) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 4 caractères';
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
     }
 
     if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
@@ -106,20 +104,14 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
     if (!formData.function) {
       newErrors.function = 'La fonction est requise';
-    } else if (formData.function === 'Autre' && !formData.customFunction.trim()) {
-      newErrors.customFunction = 'Veuillez préciser la fonction';
     }
 
     if (!formData.projectFamily) {
       newErrors.projectFamily = 'Le projet/famille est requis';
-    } else if (formData.projectFamily === 'Autre' && !formData.customProjectFamily.trim()) {
-      newErrors.customProjectFamily = 'Veuillez préciser le projet/famille';
     }
 
     if (!formData.diploma) {
       newErrors.diploma = 'Le diplôme est requis';
-    } else if (formData.diploma === 'Autre' && !formData.customDiploma.trim()) {
-      newErrors.customDiploma = 'Veuillez préciser le diplôme';
     }
 
     if (!formData.experience || parseFloat(formData.experience) < 0) {
@@ -138,34 +130,20 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     e.preventDefault();
 
     console.log('═══════════════════════════════════════════════════════');
-    console.log('🎯 BOUTON "ENREGISTRER LE COLLABORATEUR" CLIQUÉ');
+    console.log('📝 CRÉATION DE COMPTE');
     console.log('═══════════════════════════════════════════════════════');
-    console.log('');
 
-    console.log('📋 1. DONNÉES DU FORMULAIRE (formData brut):');
-    console.log(JSON.stringify(formData, null, 2));
-    console.log('');
-
-    console.log('👤 2. UTILISATEUR ACTUEL:');
-    console.log('currentUser:', currentUser);
-    console.log('isAuthenticated:', isAuthenticated());
-    console.log('');
-
-    console.log('✅ 3. VALIDATION DU FORMULAIRE...');
     if (!validateForm()) {
-      console.log('❌ Validation échouée!');
-      console.log('📝 Erreurs détectées:', errors);
-      console.log('═══════════════════════════════════════════════════════');
+      console.log('❌ Validation échouée');
       return;
     }
-    console.log('✅ Validation réussie!');
-    console.log('');
 
     setIsSubmitting(true);
 
     try {
-      const collaboratorData = {
-        matricule: formData.matricule.toUpperCase(),
+      const userData = {
+        matricule: formData.matricule,
+        password: formData.password,
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         function: formData.function === 'Autre' ? formData.customFunction : formData.function,
@@ -175,141 +153,30 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
         yazakiSeniority: parseFloat(formData.yazakiSeniority),
       };
 
-      console.log('📦 4. DONNÉES PRÉPARÉES (collaboratorData):');
-      console.log(JSON.stringify(collaboratorData, null, 2));
-      console.log('');
+      console.log('📤 Données d\'inscription:', userData);
 
-      // Si l'utilisateur n'est pas connecté, créer un compte automatiquement
-      if (!isAuthenticated()) {
-        console.log('⚠️  5. UTILISATEUR NON CONNECTÉ - Création automatique du compte...');
-        
-        try {
-          const registerResponse = await register(collaboratorData);
-          console.log('✅ Compte créé automatiquement!');
-          console.log('📦 Réponse register:', registerResponse);
-          setUserAuthenticated(true);
-        } catch (registerError) {
-          console.error('❌ Erreur lors de la création du compte:', registerError);
-          
-          // Si le compte existe déjà, ignorer l'erreur et continuer
-          if (registerError.message && registerError.message.includes('déjà enregistré')) {
-            console.log('ℹ️  Le compte existe déjà, passage à la création du collaborateur...');
-          } else {
-            throw registerError;
-          }
-        }
-      } else {
-        console.log('✅ 5. UTILISATEUR DÉJÀ CONNECTÉ');
-      }
+      const response = await register(userData);
 
-      console.log('');
-      console.log('🚀 6. APPEL API - Création du collaborateur...');
-      console.log('URL: POST /api/collaborators');
-      console.log('');
-
-      // Créer le collaborateur
-      const response = await createCollaborator(collaboratorData);
-
-      console.log('📬 7. RÉPONSE DE L\'API:');
-      console.log(JSON.stringify(response, null, 2));
-      console.log('');
+      console.log('✅ Compte créé avec succès!');
+      console.log('📦 Données utilisateur:', response.data);
 
       if (response.success) {
-        console.log('✅ 8. COLLABORATEUR CRÉÉ AVEC SUCCÈS!');
-        console.log('ID du collaborateur:', response.data.id);
-        console.log('');
-        
-        setSubmittedData(collaboratorData);
-        setIsSubmitted(true);
-
-        console.log('🎉 9. AFFICHAGE DE LA CONFIRMATION');
-        console.log('');
-
-        setTimeout(() => {
-          console.log('🔄 Réinitialisation du formulaire');
-          setFormData({
-            matricule: '',
-            firstName: '',
-            lastName: '',
-            function: '',
-            customFunction: '',
-            projectFamily: '',
-            customProjectFamily: '',
-            diploma: '',
-            customDiploma: '',
-            experience: '',
-            yazakiSeniority: '',
-          });
-          setIsSubmitted(false);
-          setSubmittedData(null);
-        }, 3000);
+        onRegisterSuccess && onRegisterSuccess({
+          ...response.data,
+          authenticated: true
+        });
       }
     } catch (error) {
-      console.log('');
-      console.log('❌ ERREUR LORS DE LA CRÉATION');
-      console.log('────────────────────────────────────────────────────');
-      console.log('Type:', error.constructor.name);
-      console.log('Message:', error.message);
-      console.log('Détails:', error);
-      console.log('────────────────────────────────────────────────────');
-      console.log('');
-      
-      setErrors({ 
-        submit: error.message || 'Une erreur est survenue lors de la création du collaborateur' 
+      console.error('❌ Erreur de création de compte:', error);
+
+      setErrors({
+        submit: error.message || 'Une erreur est survenue lors de la création du compte'
       });
     } finally {
       setIsSubmitting(false);
       console.log('═══════════════════════════════════════════════════════');
-      console.log('');
     }
   };
-
-  if (isSubmitted && submittedData) {
-    return (
-      <div className="max-w-2xl mx-auto animate-fade-in">
-        <div className="card text-center">
-          <div className="mb-6">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Collaborateur enregistré !
-          </h2>
-          <div className="mb-4 p-4 bg-yazaki-light-gray rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Matricule</p>
-            <p className="text-2xl font-bold text-yazaki-red">{submittedData.matricule}</p>
-          </div>
-          <p className="text-lg text-gray-700">
-            <span className="font-semibold">{submittedData.firstName} {submittedData.lastName}</span>
-          </p>
-          <p className="text-gray-600 mt-2">
-            Le compte et le profil ont été créés avec succès
-          </p>
-          {!userAuthenticated && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                🔑 Mot de passe: <strong>{submittedData.matricule}</strong>
-              </p>
-            </div>
-          )}
-
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="mt-6 btn-secondary"
-            >
-              Retour à l'accueil
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto animate-slide-in">
@@ -330,32 +197,25 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
         <div className="mb-8 border-b border-gray-200 pb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-            Nouveau Collaborateur
+            Créer un Compte
           </h2>
           <p className="text-gray-600 ml-5">
-            Remplissez les informations du collaborateur pour créer son profil dans la Skills Matrix
+            Remplissez vos informations pour créer votre compte Skills Matrix
           </p>
-          {!userAuthenticated && (
-            <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg ml-5">
-              <p className="text-sm text-blue-800">
-                ℹ️ Un compte sera automatiquement créé avec le matricule comme mot de passe
-              </p>
-            </div>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Section: Identification */}
+          {/* Section: Authentification */}
           <div className="section-container">
             <h3 className="section-header">
               <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Identification
+              Authentification
             </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-3">
                 <FormInput
                   label="Matricule"
                   name="matricule"
@@ -369,12 +229,46 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
               </div>
 
               <FormInput
+                label="Mot de passe"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Minimum 4 caractères"
+                error={errors.password}
+                required
+              />
+
+              <FormInput
+                label="Confirmer le mot de passe"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Retapez le mot de passe"
+                error={errors.confirmPassword}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Section: Identification */}
+          <div className="section-container">
+            <h3 className="section-header">
+              <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+              </svg>
+              Identification
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
                 label="Prénom"
                 name="firstName"
                 type="text"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="Entrez le prénom"
+                placeholder="Votre prénom"
                 error={errors.firstName}
                 required
               />
@@ -385,7 +279,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 type="text"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="Entrez le nom"
+                placeholder="Votre nom"
                 error={errors.lastName}
                 required
               />
@@ -543,14 +437,14 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                {userAuthenticated ? 'Enregistrement en cours...' : 'Création du compte et enregistrement...'}
+                Création en cours...
               </>
             ) : (
               <>
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 </svg>
-                Enregistrer le Collaborateur
+                Créer mon Compte
               </>
             )}
           </button>
@@ -560,4 +454,4 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   );
 };
 
-export default CollaboratorForm;
+export default Register;

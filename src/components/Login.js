@@ -1,9 +1,11 @@
 /**
- * Login - Page de connexion avec matricule
+ * Login - Page de connexion
+ * Le mot de passe doit être le matricule
  */
 
 import React, { useState } from 'react';
 import FormInput from './FormInput';
+import { login } from '../api/authService';
 
 const Login = ({ onBack, onLoginSuccess }) => {
   const [formData, setFormData] = useState({
@@ -16,8 +18,6 @@ const Login = ({ onBack, onLoginSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // Convertir le matricule en majuscules automatiquement
     const finalValue = name === 'matricule' ? value.toUpperCase() : value;
 
     setFormData(prev => ({
@@ -36,18 +36,14 @@ const Login = ({ onBack, onLoginSuccess }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validation du matricule
     if (!formData.matricule.trim()) {
       newErrors.matricule = 'Le matricule est requis';
     } else if (!/^[A-Z0-9]{4,10}$/.test(formData.matricule)) {
       newErrors.matricule = 'Format de matricule invalide (4 à 10 caractères alphanumériques)';
     }
 
-    // Validation du mot de passe (doit correspondre au matricule)
     if (!formData.password) {
       newErrors.password = 'Le mot de passe est requis';
-    } else if (formData.password.length < 4) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 4 caractères';
     }
 
     setErrors(newErrors);
@@ -57,36 +53,44 @@ const Login = ({ onBack, onLoginSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('🔐 TENTATIVE DE CONNEXION');
+    console.log('═══════════════════════════════════════════════════════');
+
     if (!validateForm()) {
+      console.log('❌ Validation échouée');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('📤 Appel API login avec:', {
+        matricule: formData.matricule,
+        password: formData.password,
+        passwordMatchesMatricule: formData.password.toUpperCase() === formData.matricule.toUpperCase()
+      });
 
-      // Vérification simple : mot de passe = matricule (pour démonstration)
-      // TODO: Remplacer par votre vraie API d'authentification
-      if (formData.password.toUpperCase() === formData.matricule) {
-        console.log('Login réussi:', {
-          matricule: formData.matricule,
-          timestamp: new Date().toISOString()
-        });
+      const response = await login(formData.matricule, formData.password);
 
+      console.log('✅ Connexion réussie!');
+      console.log('📦 Données utilisateur:', response.data);
+
+      if (response.success) {
         onLoginSuccess && onLoginSuccess({
-          matricule: formData.matricule,
+          ...response.data,
           authenticated: true
         });
-      } else {
-        setErrors({ submit: 'Matricule ou mot de passe incorrect' });
-        setIsSubmitting(false);
       }
-
     } catch (error) {
-      setErrors({ submit: 'Une erreur est survenue lors de la connexion' });
+      console.error('❌ Erreur de connexion:', error);
+
+      setErrors({
+        submit: error.message || 'Matricule ou mot de passe incorrect'
+      });
+    } finally {
       setIsSubmitting(false);
+      console.log('═══════════════════════════════════════════════════════');
     }
   };
 
@@ -94,7 +98,6 @@ const Login = ({ onBack, onLoginSuccess }) => {
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4">
       <div className="max-w-md w-full animate-fade-in">
         <div className="card">
-          {/* Titre */}
           <div className="text-center mb-8">
             <div className="w-20 h-20 bg-gradient-to-br from-yazaki-red to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,9 +108,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
             <p className="text-gray-600">Accédez à votre espace Skills Matrix</p>
           </div>
 
-          {/* Formulaire */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Champ Matricule */}
             <div>
               <FormInput
                 label="Matricule"
@@ -127,7 +128,6 @@ const Login = ({ onBack, onLoginSuccess }) => {
               </p>
             </div>
 
-            {/* Champ Mot de passe */}
             <div>
               <FormInput
                 label="Mot de passe"
@@ -135,19 +135,18 @@ const Login = ({ onBack, onLoginSuccess }) => {
                 type="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Votre mot de passe"
+                placeholder="Votre matricule"
                 error={errors.password}
                 required
               />
-              <p className="mt-1 text-xs text-gray-500 flex items-center">
+              <p className="mt-1 text-xs text-yazaki-red flex items-center font-medium">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Par défaut, utilisez votre matricule comme mot de passe
+                Le mot de passe est votre matricule
               </p>
             </div>
 
-            {/* Message d'erreur */}
             {errors.submit && (
               <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 animate-shake">
                 <p className="text-red-800 flex items-center">
@@ -159,7 +158,6 @@ const Login = ({ onBack, onLoginSuccess }) => {
               </div>
             )}
 
-            {/* Bouton de connexion */}
             <button
               type="submit"
               disabled={isSubmitting}
@@ -183,31 +181,22 @@ const Login = ({ onBack, onLoginSuccess }) => {
               )}
             </button>
 
-            {/* Lien mot de passe oublié */}
             <div className="text-center pt-4 border-t border-gray-200">
-              <a
-                href="#"
-                className="text-sm text-yazaki-red hover:text-yazaki-dark-red font-medium inline-flex items-center"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert('Veuillez contacter votre administrateur pour réinitialiser votre mot de passe.');
-                }}
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Mot de passe oublié ?
-              </a>
+              <p className="text-xs text-gray-600">
+                Pas encore de compte ? Utilisez le bouton "Créer un Compte" sur la page d'accueil
+              </p>
             </div>
           </form>
 
-          {/* Information de test */}
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800 font-medium mb-1">
-              💡 Mode démonstration
+            <p className="text-sm text-blue-800 font-medium mb-1 flex items-center">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Connexion simplifiée
             </p>
             <p className="text-xs text-blue-700">
-              Pour tester : utilisez votre matricule comme mot de passe (ex: YMM12345 / YMM12345)
+              Votre mot de passe est identique à votre matricule
             </p>
           </div>
         </div>
