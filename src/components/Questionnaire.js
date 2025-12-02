@@ -4,12 +4,56 @@
 
 import React, { useState, useEffect } from 'react';
 import { skillsData, scoreScale, generateQuestionnaireSteps } from '../assets/questions';
+import QuestionnaireSummary from './QuestionnaireSummary';
+import QuestionnaireReadOnly from './QuestionnaireReadOnly';
+import { getUserQuestionnaireResults } from '../api/questionnaireService';
+import { decodeObjectFromFirebase } from '../utils/firebaseKeyEncoder';
 
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [steps, setSteps] = useState([]);
+  const [showSummary, setShowSummary] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [existingQuestionnaire, setExistingQuestionnaire] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Vérifier si l'utilisateur a déjà rempli le questionnaire
+  useEffect(() => {
+    const checkExistingQuestionnaire = async () => {
+      if (!currentUser || !currentUser.matricule) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        console.log('🔍 Vérification du questionnaire existant pour:', currentUser.matricule);
+
+        const result = await getUserQuestionnaireResults(currentUser.matricule);
+
+        if (result && result.data) {
+          console.log('✅ Questionnaire existant trouvé:', result.data);
+          setExistingQuestionnaire(result.data);
+
+          // Si mode édition, charger les réponses existantes
+          if (isEditMode && result.data.results) {
+            setAnswers(result.data.results);
+            console.log('📝 Mode édition activé - Réponses chargées');
+          }
+        } else {
+          console.log('ℹ️ Aucun questionnaire existant - mode édition');
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors de la vérification:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkExistingQuestionnaire();
+  }, [currentUser, isEditMode]);
 
   // Générer les étapes à partir du JSON
   useEffect(() => {
@@ -20,6 +64,28 @@ const Questionnaire = ({ currentUser, onBack }) => {
       categories: Object.keys(skillsData).length
     });
   }, []);
+
+  // Gérer l'activation du mode édition
+  const handleEnterEditMode = () => {
+    console.log('✏️ Activation du mode édition');
+    setIsEditMode(true);
+    setExistingQuestionnaire(null);
+
+    // Charger les réponses existantes dans le state
+    if (existingQuestionnaire && existingQuestionnaire.results) {
+      setAnswers(existingQuestionnaire.results);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Annuler le mode édition
+  const handleCancelEdit = () => {
+    console.log('❌ Annulation du mode édition');
+    setIsEditMode(false);
+    setAnswers({});
+    window.location.reload(); // Recharger pour afficher le mode lecture seule
+  };
 
   // Obtenir la valeur actuelle d'une compétence
   const getSkillValue = (step, skillName) => {
@@ -71,26 +137,24 @@ const Questionnaire = ({ currentUser, onBack }) => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('📊 RÉSULTATS DU QUESTIONNAIRE DE COMPÉTENCES');
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('');
-    console.log('👤 Utilisateur:', currentUser?.matricule || 'Anonyme');
-    console.log('📅 Date:', new Date().toISOString());
-    console.log('');
-    console.log('📋 Réponses complètes:');
-    console.log(JSON.stringify(answers, null, 2));
-    console.log('');
-    console.log('📈 Statistiques:');
-    const stats = calculateStats();
-    console.log('Total de compétences évaluées:', stats.totalAnswered);
-    console.log('Moyenne générale:', stats.averageScore.toFixed(2));
-    console.log('');
-    console.log('═══════════════════════════════════════════════════════');
+  // Modifier handleSubmit pour afficher le résumé
+  const handleGoToSummary = () => {
+    console.log('📊 Navigation vers le résumé du questionnaire');
+    setShowSummary(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    // TODO: Envoyer les réponses au backend
-    alert('Questionnaire soumis avec succès! Consultez la console pour voir les réponses.');
+  const handleBackFromSummary = () => {
+    console.log('← Retour au questionnaire');
+    setShowSummary(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSuccess = (response) => {
+    console.log('✅ Questionnaire sauvegardé avec succès!', response);
+    setIsCompleted(true);
+    setIsEditMode(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Calculer le pourcentage de complétion basé sur le NOMBRE TOTAL de réponses
@@ -159,7 +223,8 @@ const Questionnaire = ({ currentUser, onBack }) => {
     };
   };
 
-  if (steps.length === 0) {
+  // Afficher le loader pendant la vérification
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto animate-fade-in">
         <div className="card text-center py-16">
@@ -167,6 +232,64 @@ const Questionnaire = ({ currentUser, onBack }) => {
           <p className="text-gray-600">Chargement du questionnaire...</p>
         </div>
       </div>
+    );
+  }
+
+  // Si le questionnaire est complété (après sauvegarde en mode édition)
+  if (isCompleted) {
+    return (
+      <div className="max-w-2xl mx-auto animate-fade-in">
+        <div className="card text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            {isEditMode ? 'Questionnaire Mis à Jour !' : 'Questionnaire Complété !'}
+          </h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Vos compétences ont été {isEditMode ? 'mises à jour' : 'enregistrées'} avec succès.
+          </p>
+
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="btn-primary"
+            >
+              Retour à l'accueil
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Si le questionnaire existe déjà ET qu'on n'est pas en mode édition
+  if (existingQuestionnaire && !isEditMode) {
+    return (
+      <QuestionnaireReadOnly
+        currentUser={currentUser}
+        questionnaireData={existingQuestionnaire}
+        onBack={onBack}
+        onEdit={handleEnterEditMode}
+      />
+    );
+  }
+
+  // Si on affiche le résumé
+  if (showSummary) {
+    return (
+      <QuestionnaireSummary
+        currentUser={currentUser}
+        answers={answers}
+        onBack={handleBackFromSummary}
+        onSuccess={handleSuccess}
+      />
     );
   }
 
@@ -179,6 +302,34 @@ const Questionnaire = ({ currentUser, onBack }) => {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="card">
+        {/* Badge Mode Édition si modification */}
+        {isEditMode && (
+          <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="w-6 h-6 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <div>
+                  <p className="font-semibold text-orange-800">Mode Modification</p>
+                  <p className="text-sm text-orange-700">
+                    Vous pouvez modifier vos réponses précédentes
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCancelEdit}
+                className="px-4 py-2 bg-white border-2 border-orange-300 text-orange-700 rounded-lg font-semibold hover:bg-orange-50 transition-all duration-200 flex items-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* En-tête */}
         <div className="mb-8 border-b border-gray-200 pb-6">
           <div className="flex items-center justify-between mb-4">
@@ -367,13 +518,13 @@ const Questionnaire = ({ currentUser, onBack }) => {
           ) : (
             <button
               type="button"
-              onClick={handleSubmit}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
+              onClick={handleGoToSummary}
+              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              Soumettre le Questionnaire
+              Voir le Résumé
             </button>
           )}
         </div>
@@ -394,6 +545,38 @@ const Questionnaire = ({ currentUser, onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Si le questionnaire est complété, afficher le message de succès */}
+      {isCompleted && (
+        <div className="max-w-2xl mx-auto animate-fade-in">
+          <div className="card text-center">
+            <div className="mb-6">
+              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              Questionnaire Complété !
+            </h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Vos compétences ont été enregistrées avec succès.
+            </p>
+
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="btn-primary"
+              >
+                Retour à l'accueil
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
