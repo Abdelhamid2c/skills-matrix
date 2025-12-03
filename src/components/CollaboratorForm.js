@@ -99,7 +99,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     }
 
     if (!formData.projectFamily) {
-      newErrors.projectFamily = 'Le projet/famille est requis';
+      newErrors.projectFamily = 'Le projet est requis';
     } else if (formData.projectFamily === 'Autre' && !formData.customProjectFamily.trim()) {
       newErrors.customProjectFamily = 'Veuillez préciser le projet/famille';
     }
@@ -116,6 +116,16 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
     if (!formData.yazakiSeniority || parseFloat(formData.yazakiSeniority) < 0) {
       newErrors.yazakiSeniority = 'L\'ancienneté Yazaki est requise';
+    }
+
+    // Validation: Expérience Totale >= Ancienneté Yazaki
+    if (formData.experience && formData.yazakiSeniority) {
+      const totalExp = parseFloat(formData.experience);
+      const yazakiExp = parseFloat(formData.yazakiSeniority);
+
+      if (yazakiExp > totalExp) {
+        newErrors.yazakiSeniority = 'L\'ancienneté Yazaki ne peut pas dépasser l\'expérience totale';
+      }
     }
 
     setErrors(newErrors);
@@ -408,31 +418,41 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 </div>
               )}
 
-              <FormInput
-                label="Expérience Totale (années)"
-                name="experience"
-                type="number"
-                value={formData.experience}
-                onChange={handleChange}
-                placeholder="0"
-                error={errors.experience}
-                min="0"
-                max="50"
-                required
-              />
+              <div>
+                <FormInput
+                  label="Expérience Totale (années)"
+                  name="experience"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  placeholder="Ex: 1.3 (1 an et 3 mois)"
+                  error={errors.experience}
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  💡 Ex: 2.5 = 2 ans et 5 mois
+                </p>
+              </div>
 
-              <FormInput
-                label="Ancienneté Yazaki (années)"
-                name="yazakiSeniority"
-                type="number"
-                value={formData.yazakiSeniority}
-                onChange={handleChange}
-                placeholder="0"
-                error={errors.yazakiSeniority}
-                min="0"
-                max={formData.experience || "50"}
-                required
-              />
+              <div>
+                <FormInput
+                  label="Ancienneté Yazaki (années)"
+                  name="yazakiSeniority"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
+                  value={formData.yazakiSeniority}
+                  onChange={handleChange}
+                  placeholder="Ex: 0.5 ou 0,5 (6 mois)"
+                  error={errors.yazakiSeniority}
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  ⚠️ Doit être ≤ à l'expérience totale
+                </p>
+              </div>
             </div>
           </div>
 
