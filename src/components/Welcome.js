@@ -4,12 +4,16 @@
 
 import React from 'react';
 
-const Welcome = ({ onGetStarted }) => {
+const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
 
   const handleGetStartedClick = (e) => {
     e.preventDefault();
-    console.log('Bouton Commencer cliqué');
-    if (onGetStarted) {
+    console.log('Bouton Commencer cliqué - Redirection vers Login');
+    console.log('═══════════════════════════════════════════════════════');
+
+    if (onNavigateToLogin) {
+      onNavigateToLogin();
+    } else if (onGetStarted) {
       onGetStarted();
     }
   };
@@ -106,6 +110,17 @@ const Welcome = ({ onGetStarted }) => {
               <div className="text-5xl font-bold mb-2">15+</div>
               <div className="text-lg opacity-90">Départements</div>
             </div>
+          </div>
+        </div>
+
+        {/* Developer Credit */}
+        <div className="mt-12 text-center animate-fade-in" style={{animationDelay: '0.6s'}}>
+          <div className="inline-flex items-center px-6 py-3 bg-white rounded-full shadow-lg border-2 border-gray-200">
+            <svg className="w-5 h-5 text-yazaki-red mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+            <span className="text-gray-700 font-medium">Developed by</span>
+            <span className="ml-2 font-bold text-yazaki-red">Abdelhamid Chebel</span>
           </div>
         </div>
       </div>

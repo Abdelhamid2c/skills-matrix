@@ -28,35 +28,36 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   const [submittedData, setSubmittedData] = useState(null);
 
   const functionOptions = [
-    { value: '', label: 'Sélectionner une fonction' },
-    { value: 'Ingénieur Qualité', label: 'Ingénieur Qualité' },
-    { value: 'Ingénieur Production', label: 'Ingénieur Production' },
-    { value: 'Ingénieur Méthodes', label: 'Ingénieur Méthodes' },
-    { value: 'Ingénieur Maintenance', label: 'Ingénieur Maintenance' },
-    { value: 'Technicien', label: 'Technicien' },
-    { value: 'Chef de Projet', label: 'Chef de Projet' },
-    { value: 'Responsable d\'Équipe', label: 'Responsable d\'Équipe' },
-    { value: 'Autre', label: 'Autre' },
-  ];
+  { value: '', label: 'Sélectionner une fonction' },
+  { value: 'PE Responsible', label: 'PE Responsible' },
+  { value: 'PE Supervisor', label: 'PE Supervisor' },
+  { value: 'IE Supervisor', label: 'IE Supervisor' },
+  { value: 'PE Technician', label: 'PE Technician' },
+  { value: 'IE Technician', label: 'IE Technician' },
+  { value: 'PFMEA', label: 'PFMEA' },
+  { value: 'SAP & Data Management', label: 'SAP & Data Management' },
+  { value: 'Autocad', label: 'Autocad' },
+  { value: 'Autre', label: 'Autre' },
+];
 
   const projectFamilyOptions = [
-    { value: '', label: 'Sélectionner un projet/famille' },
-    { value: 'Wire Harness', label: 'Wire Harness' },
-    { value: 'Components', label: 'Components' },
-    { value: 'Electrical Distribution Systems', label: 'Electrical Distribution Systems' },
-    { value: 'Quality Assurance', label: 'Quality Assurance' },
-    { value: 'Production', label: 'Production' },
-    { value: 'Engineering', label: 'Engineering' },
+    { value: '', label: 'Sélectionner un projet' },
+    { value: 'XCB', label: 'XCB' },
+    { value: 'XHN', label: 'XHN' },
+    { value: 'Toyota', label: 'Toyota' },
+    { value: 'Nissan', label: 'Nissan' },
+    { value: 'All', label: 'All' },
     { value: 'Autre', label: 'Autre' },
   ];
 
   const diplomaOptions = [
     { value: '', label: 'Sélectionner un diplôme' },
-    { value: 'Bac+2 (DUT/BTS)', label: 'Bac+2 (DUT/BTS)' },
-    { value: 'Bac+3 (Licence)', label: 'Bac+3 (Licence)' },
-    { value: 'Bac+5 (Master/Ingénieur)', label: 'Bac+5 (Master/Ingénieur)' },
-    { value: 'Bac+8 (Doctorat)', label: 'Bac+8 (Doctorat)' },
-    { value: 'Formation Professionnelle', label: 'Formation Professionnelle' },
+    { value: 'Bac', label: 'Bac' },
+    { value: 'TS (Bac+2)', label: 'TS (Bac+2)' },
+    { value: 'License (Bac+3)', label: 'License (Bac+3)' },
+    { value: 'Maîtrise (Bac+4)', label: 'Maîtrise (Bac+4)' },
+    { value: 'Engineer (Bac+5)', label: 'Engineer (Bac+5)' },
+    { value: 'Master (Bac+5)', label: 'Master (Bac+5)' },
     { value: 'Autre', label: 'Autre' },
   ];
 
@@ -249,11 +250,8 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
         <div className="mb-8 border-b border-gray-200 pb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-            Nouveau Collaborateur
+            Nouveau employé
           </h2>
-          <p className="text-gray-600 ml-5">
-            Créer un nouveau collaborateur dans la collection <strong>users</strong>
-          </p>
           <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg ml-5">
             <p className="text-sm text-blue-800">
               ℹ️ Le compte sera créé avec le matricule comme mot de passe
