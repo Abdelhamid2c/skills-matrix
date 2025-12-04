@@ -212,11 +212,28 @@ export const generateQuestionnaireSteps = (data = skillsData) => {
   const processCategory = (categoryName, categoryData, parentPath = []) => {
     if (Array.isArray(categoryData)) {
       // C'est une liste de compétences
+      const fullPath = [...parentPath, categoryName];
+
+      // Générer un titre lisible
+      let title = '';
+      if (fullPath.length === 1) {
+        // Catégorie principale seule (ex: "Soft Skills", "Management Skills")
+        title = categoryName;
+      } else if (fullPath.length === 2) {
+        // Sous-catégorie (ex: "Technical Skills > Generic")
+        title = categoryName;
+      } else if (fullPath.length === 3) {
+        // Sous-sous-catégorie (ex: "Process Design > Manufacturing Process Design")
+        title = categoryName;
+      }
+
       steps.push({
         category: parentPath[0] || categoryName,
         subCategory: parentPath.length > 0 ? categoryName : '',
         skills: categoryData,
-        path: [...parentPath, categoryName]
+        path: fullPath,
+        title: title, // Titre affiché
+        fullTitle: fullPath.join(' > ') // Titre complet pour référence
       });
     } else if (typeof categoryData === 'object') {
       // C'est un objet avec des sous-catégories

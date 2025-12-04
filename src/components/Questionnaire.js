@@ -751,17 +751,51 @@ const handleEdit = (editInfo) => {
             {/* Affichage de l'étape actuelle */}
             {currentStepData && (
               <>
-                {/* Titre de l'étape */}
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    {currentStepData.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    Étape {currentStep + 1} sur {steps.length}
-                  </p>
+                {/* Titre de l'étape avec catégorie principale */}
+                <div className="mt-8 mb-6">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-yazaki-red to-red-600 rounded-lg flex items-center justify-center mr-4 shadow-md">
+                      <span className="text-white font-bold text-xl">{currentStep + 1}</span>
+                    </div>
+                    <div className="flex-1">
+                      {/* Afficher la catégorie principale si différente du titre */}
+                      {currentStepData.path.length > 1 && currentStepData.path[0] !== currentStepData.title && (
+                        <p className="text-sm font-semibold text-yazaki-red uppercase tracking-wide mb-1">
+                          {currentStepData.path[0]}
+                        </p>
+                      )}
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {currentStepData.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm mt-1">
+                        Step {currentStep + 1} of {steps.length} • {answeredCount} / {totalSkills} skills assessed
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Breadcrumb du chemin complet */}
+                  <div className="flex items-center text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-2 mb-3">
+                    <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <div className="flex items-center flex-wrap gap-2">
+                      {currentStepData.path.map((pathSegment, index) => (
+                        <React.Fragment key={index}>
+                          {index > 0 && (
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          )}
+                          <span className={index === currentStepData.path.length - 1 ? 'font-semibold text-gray-900' : ''}>
+                            {pathSegment}
+                          </span>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
 
                   {/* Indicateur d'échelle utilisée */}
-                  <div className={`mt-4 p-3 rounded-lg border-2 ${
+                  <div className={`p-3 rounded-lg border-2 ${
                     currentScale.length > 5
                       ? 'bg-purple-50 border-purple-300'
                       : 'bg-blue-50 border-blue-300'
@@ -770,8 +804,8 @@ const handleEdit = (editInfo) => {
                       currentScale.length > 5 ? 'text-purple-900' : 'text-blue-900'
                     }`}>
                       {currentScale.length > 5
-                        ? '📊 Échelle comportementale : 0 à 10'
-                        : '🔧 Échelle technique : 0 à 4'}
+                        ? '📊 Behavioral/Communication Scale: 0 to 10'
+                        : '🔧 Technical Skills Scale: 0 to 4'}
                     </p>
                   </div>
                 </div>
