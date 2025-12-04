@@ -3,12 +3,20 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { skillsData, scoreScale, generateQuestionnaireSteps } from '../assets/questions';
+import {
+  skillsData,
+  scoreScale,
+  behavioralScoreScale,
+  getScaleForCategory,
+  getScoreLabel,
+  getScoreColor,
+  generateQuestionnaireSteps
+} from '../assets/questions';
 import QuestionnaireSummary from './QuestionnaireSummary';
 import QuestionnaireReadOnly from './QuestionnaireReadOnly';
 import { getUserQuestionnaireResults, saveQuestionnaireProgress } from '../api/questionnaireService';
-// import { encodeObjectForFirebase } from '../utils/firebaseKeyEncoder';
 import { encodeObjectForFirebase, decodeObjectFromFirebase, decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
+
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
   const [currentStep, setCurrentStep] = useState(0);
@@ -173,7 +181,7 @@ const handleEdit = (editInfo) => {
       setIsSaving(true);
 
       // Mettre à jour les réponses
-      const updatedAnswers = { ...answers };
+      const updatedAnswers = JSON.parse(JSON.stringify(answers));
       let current = updatedAnswers;
 
       // Naviguer jusqu'à la compétence
@@ -529,8 +537,11 @@ const handleEdit = (editInfo) => {
   const currentStepData = steps[currentStep];
   const progress = calculateProgress();
   const answeredCount = countAnsweredSkills(currentStepData);
-  const totalSkills = currentStepData.skills.length;
+  const totalSkills = currentStepData?.skills?.length || 0;
   const completedSteps = countCompletedSteps();
+
+  // Obtenir l'échelle appropriée pour l'étape actuelle
+  const currentScale = currentStepData ? getScaleForCategory(currentStepData.path) : scoreScale;
 
   return (
     <>
@@ -558,71 +569,83 @@ const handleEdit = (editInfo) => {
             </div>
 
             <div className="p-6">
-              {/* Échelle d'évaluation */}
-              <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-3">Échelle d'évaluation</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                  {scoreScale.map((score) => (
-                    <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
-                      {score.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Obtenir l'échelle pour cette compétence */}
+              {(() => {
+                const skillScale = getScaleForCategory(editingSkill.categoryPath);
+                const isBehavioral = skillScale.length > 5;
 
-              {/* Sélection du score */}
-              <div className="space-y-3">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Sélectionnez votre niveau de compétence :
-                </label>
-                {scoreScale.map((scoreOption) => {
-                  // Obtenir le score actuel
-                  let currentScore = -1;
-                  let current = answers;
-                  for (const key of editingSkill.categoryPath) {
-                    current = current?.[key];
-                  }
-                  currentScore = current?.[editingSkill.skillName] ?? -1;
-
-                  return (
-                    <button
-                      key={scoreOption.value}
-                      onClick={() => handleSaveSkill(scoreOption.value)}
-                      disabled={isSaving}
-                      className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                        currentScore === scoreOption.value
-                          ? 'border-yazaki-red bg-red-50 shadow-md'
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow'
-                      } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white mr-3 ${
-                            scoreOption.value === 0 ? 'bg-gray-400' :
-                            scoreOption.value === 1 ? 'bg-red-500' :
-                            scoreOption.value === 2 ? 'bg-orange-500' :
-                            scoreOption.value === 3 ? 'bg-yellow-500' :
-                            scoreOption.value === 4 ? 'bg-green-500' : 'bg-blue-500'
-                          }`}>
-                            {scoreOption.value}
-                          </span>
-                          <div>
-                            <p className="font-semibold text-gray-900">{scoreOption.label}</p>
-                            {scoreOption.description && (
-                              <p className="text-xs text-gray-600 mt-1">{scoreOption.description}</p>
-                            )}
+                return (
+                  <>
+                    {/* Échelle d'évaluation */}
+                    <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-900 mb-3">
+                        {isBehavioral ? 'Échelle d\'évaluation comportementale (0-10)' : 'Échelle d\'évaluation technique (0-4)'}
+                      </h4>
+                      <div className={`grid grid-cols-1 ${isBehavioral ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} gap-2`}>
+                        {skillScale.map((score) => (
+                          <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
+                            {score.value}
                           </div>
-                        </div>
-                        {currentScore === scoreOption.value && (
-                          <svg className="w-6 h-6 text-yazaki-red" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        )}
+                        ))}
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+
+                    {/* Sélection du score */}
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        Sélectionnez votre niveau :
+                      </label>
+                      {skillScale.map((scoreOption) => {
+                        // Obtenir le score actuel
+                        let currentScore = -1;
+                        let current = answers;
+                        for (const key of editingSkill.categoryPath) {
+                          current = current?.[key];
+                        }
+                        currentScore = current?.[editingSkill.skillName] ?? -1;
+
+                        return (
+                          <button
+                            key={scoreOption.value}
+                            onClick={() => handleSaveSkill(scoreOption.value)}
+                            disabled={isSaving}
+                            className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                              currentScore === scoreOption.value
+                                ? 'border-yazaki-red bg-red-50 shadow-md'
+                                : 'border-gray-200 hover:border-gray-300 hover:shadow'
+                            } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mr-3 ${
+                                  scoreOption.value <= 2 ? 'bg-red-500' :
+                                  scoreOption.value <= 4 ? 'bg-orange-500' :
+                                  scoreOption.value <= 6 ? 'bg-yellow-500' :
+                                  scoreOption.value <= 8 ? 'bg-green-500' :
+                                  scoreOption.value === 9 ? 'bg-blue-500' : 'bg-purple-500'
+                                }`}>
+                                  {scoreOption.value}
+                                </span>
+                                <div>
+                                  <p className="font-semibold text-gray-900">{scoreOption.label}</p>
+                                  {scoreOption.description && (
+                                    <p className="text-xs text-gray-600 mt-1">{scoreOption.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                              {currentScore === scoreOption.value && (
+                                <svg className="w-6 h-6 text-yazaki-red" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
@@ -638,255 +661,273 @@ const handleEdit = (editInfo) => {
       )}
 
       {/* Questionnaire normal */}
-    <div className="max-w-7xl mx-auto animate-fade-in">
-      <div className="card">
-        {/* Badge Mode Édition si modification */}
-        {isEditMode && (
-          <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <svg className="w-6 h-6 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <div>
-                  <p className="font-semibold text-orange-800">Mode Modification</p>
-                  <p className="text-sm text-orange-700">
-                    Vous pouvez modifier vos réponses précédentes
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 bg-white border-2 border-orange-300 text-orange-700 rounded-lg font-semibold hover:bg-orange-50 transition-all duration-200 flex items-center"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Annuler
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Indicateur de sauvegarde automatique */}
-        {isSaving && (
-          <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center">
-            <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span className="text-sm font-medium text-blue-800">💾 Sauvegarde en cours...</span>
-          </div>
-        )}
-
-        {/* En-tête */}
-        <div className="mb-8 border-b border-gray-200 pb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
-              <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-              Questionnaire de Compétences
-            </h2>
-            {currentUser && (
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Collaborateur</p>
-                <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
-                <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Barre de progression */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-700">
-                Étape {currentStep + 1} sur {steps.length}
-              </span>
-              <span className="text-sm font-semibold text-yazaki-red">
-                {Math.round(((currentStep + 1) / steps.length) * 100)}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-              <div
-                className="bg-gradient-to-r from-yazaki-red to-red-600 h-3 rounded-full transition-all duration-500 ease-out shadow-md"
-                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-              ></div>
-            </div>
-          </div>
-
-          {/* Info de sauvegarde automatique */}
-          <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 mt-4">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <p className="text-sm text-green-800">
-                <strong>Sauvegarde automatique activée</strong> - Vos réponses sont sauvegardées à chaque étape
-              </p>
-            </div>
-          </div>
-
-          {/* Titre de l'étape actuelle */}
-          {steps[currentStep] && (
-            <div className="mt-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                {steps[currentStep].title}
-              </h3>
-              {steps[currentStep].subtitle && (
-                <p className="text-gray-600 text-lg">
-                  {steps[currentStep].subtitle}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Contenu de l'étape */}
-        <div className="mb-8">
-          {/* Échelle de notation (référence) */}
-          <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-            <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Échelle d'évaluation
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-              {scoreScale.map((score) => (
-                <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
-                  {score.label}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Liste des compétences en colonnes */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {currentStepData.skills.map((skillName, index) => {
-              const currentValue = getSkillValue(currentStepData, skillName);
-
-              return (
-                <div
-                  key={index}
-                  className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-yazaki-red transition-all duration-200 shadow-sm hover:shadow-md"
-                >
-                  {/* En-tête de la question */}
-                  <div className="mb-3">
-                    <div className="flex items-start gap-2 mb-2">
-                      <span className="flex-shrink-0 w-6 h-6 bg-yazaki-red text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <h5 className="font-semibold text-gray-900 text-sm leading-tight flex-1">
-                        {skillName}
-                      </h5>
-                    </div>
-                    <p className="text-xs text-gray-500 ml-8 truncate" title={getSkillPath(currentStepData, skillName)}>
-                      {getSkillPath(currentStepData, skillName)}
+      <div className="max-w-7xl mx-auto animate-fade-in">
+        <div className="card">
+          {/* Badge Mode Édition si modification */}
+          {isEditMode && (
+            <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <svg className="w-6 h-6 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <div>
+                    <p className="font-semibold text-orange-800">Mode Modification</p>
+                    <p className="text-sm text-orange-700">
+                      Vous pouvez modifier vos réponses précédentes
                     </p>
                   </div>
+                </div>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-4 py-2 bg-white border-2 border-orange-300 text-orange-700 rounded-lg font-semibold hover:bg-orange-50 transition-all duration-200 flex items-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
 
-                  {/* Boutons radio verticaux compacts */}
-                  <div className="ml-8 space-y-2">
-                    {scoreScale.map((score) => (
-                      <label
+          {/* Indicateur de sauvegarde automatique */}
+          {isSaving && (
+            <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center">
+              <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span className="text-sm font-medium text-blue-800">💾 Sauvegarde en cours...</span>
+            </div>
+          )}
+
+          {/* En-tête */}
+          <div className="mb-8 border-b border-gray-200 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+                <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
+                Questionnaire de Compétences
+              </h2>
+              {currentUser && (
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">Collaborateur</p>
+                  <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
+                  <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Barre de progression */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-gray-700">
+                  Étape {currentStep + 1} sur {steps.length}
+                </span>
+                <span className="text-sm font-semibold text-yazaki-red">
+                  {Math.round(((currentStep + 1) / steps.length) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div
+                  className="bg-gradient-to-r from-yazaki-red to-red-600 h-3 rounded-full transition-all duration-500 ease-out shadow-md"
+                  style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Info de sauvegarde automatique */}
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 mt-4">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <p className="text-sm text-green-800">
+                  <strong>Sauvegarde automatique activée</strong> - Vos réponses sont sauvegardées à chaque étape
+                </p>
+              </div>
+            </div>
+
+            {/* Affichage de l'étape actuelle */}
+            {currentStepData && (
+              <>
+                {/* Titre de l'étape */}
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {currentStepData.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Étape {currentStep + 1} sur {steps.length}
+                  </p>
+
+                  {/* Indicateur d'échelle utilisée */}
+                  <div className={`mt-4 p-3 rounded-lg border-2 ${
+                    currentScale.length > 5
+                      ? 'bg-purple-50 border-purple-300'
+                      : 'bg-blue-50 border-blue-300'
+                  }`}>
+                    <p className={`text-sm font-semibold ${
+                      currentScale.length > 5 ? 'text-purple-900' : 'text-blue-900'
+                    }`}>
+                      {currentScale.length > 5
+                        ? '📊 Échelle comportementale : 0 à 10'
+                        : '🔧 Échelle technique : 0 à 4'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Échelle d'évaluation */}
+                <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
+                  <h4 className="font-bold text-blue-900 mb-4 flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                      <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    {currentScale.length > 5 ? 'Échelle d\'évaluation comportementale' : 'Échelle d\'évaluation technique'}
+                  </h4>
+                  <div className={`grid ${
+                    currentScale.length > 5 ? 'grid-cols-2 sm:grid-cols-5 lg:grid-cols-11' : 'grid-cols-1 sm:grid-cols-5'
+                  } gap-2`}>
+                    {currentScale.map((score) => (
+                      <div
                         key={score.value}
-                        className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
-                          currentValue === score.value
-                            ? `${score.color} border-current shadow-md`
-                            : `bg-white border-gray-300 hover:border-gray-400 text-gray-700`
-                        }`}
+                        className={`${score.color} px-3 py-2 rounded-lg font-semibold text-center transition-all hover:shadow-md border-2 border-transparent hover:border-blue-400`}
                         title={score.description}
                       >
-                        <input
-                          type="radio"
-                          name={`skill-${currentStep}-${index}`}
-                          value={score.value}
-                          checked={currentValue === score.value}
-                          onChange={() => updateSkillValue(currentStepData, skillName, score.value)}
-                          className="sr-only"
-                        />
-                        <span className="flex items-center w-full">
-                          <span className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
-                            currentValue === score.value
-                              ? 'border-current'
-                              : 'border-gray-400'
-                          }`}>
-                            {currentValue === score.value && (
-                              <span className="w-2 h-2 rounded-full bg-current"></span>
-                            )}
-                          </span>
-                          <span className="font-semibold text-sm mr-2">{score.value}</span>
-                          <span className="text-xs flex-1">{score.label.split(' - ')[1]}</span>
-                        </span>
-                      </label>
+                        <div className="text-sm">{score.value}</div>
+                        {currentScale.length <= 5 && (
+                          <div className="text-xs mt-1 font-normal">{score.label.split(' - ')[1]}</div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Liste des compétences */}
+                <div className="space-y-4">
+                  {currentStepData.skills.map((skillName, index) => (
+                    <div
+                      key={`${currentStepData.path.join('-')}-${skillName}`}
+                      className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-yazaki-red hover:shadow-lg transition-all duration-200"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center flex-1">
+                          <span className="w-10 h-10 bg-gradient-to-br from-yazaki-red to-red-600 text-white rounded-full flex items-center justify-center font-bold text-lg mr-4 shadow-md">
+                            {index + 1}
+                          </span>
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            {skillName}
+                          </h4>
+                        </div>
+                      </div>
+
+                      {/* Boutons de sélection */}
+                      <div className={`grid ${
+                        currentScale.length > 5 ? 'grid-cols-2 sm:grid-cols-5 lg:grid-cols-11' : 'grid-cols-2 sm:grid-cols-5'
+                      } gap-2`}>
+                        {currentScale.map((scoreOption) => {
+                          const currentValue = getSkillValue(currentStepData, skillName);
+                          const isSelected = currentValue === scoreOption.value;
+
+                          return (
+                            <button
+                              key={scoreOption.value}
+                              type="button"
+                              onClick={() => {
+                                updateSkillValue(currentStepData, skillName, scoreOption.value);
+                                saveProgress({
+                                  ...answers,
+                                  [currentStepData.path[0]]: {
+                                    ...answers[currentStepData.path[0]],
+                                    [skillName]: scoreOption.value
+                                  }
+                                });
+                              }}
+                              className={`p-3 rounded-lg font-bold text-lg transition-all duration-200 border-2 ${
+                                isSelected
+                                  ? `${scoreOption.color.replace('bg-', 'bg-opacity-100 bg-')} border-yazaki-red shadow-lg scale-105`
+                                  : `${scoreOption.color} border-gray-300 hover:border-yazaki-red hover:scale-105`
+                              }`}
+                              title={`${scoreOption.label}${scoreOption.description ? ` - ${scoreOption.description}` : ''}`}
+                            >
+                              {scoreOption.value}
+                              {isSelected && (
+                                <svg className="w-4 h-4 inline-block ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Boutons de navigation */}
+                <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={handlePrevious}
+                    disabled={currentStep === 0}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center ${
+                      currentStep === 0
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Précédent
+                  </button>
+
+                  {currentStep === steps.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={handleGoToSummary}
+                      className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
+                    >
+                      Voir le Résumé
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={isSaving}
+                      className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center ${
+                        isSaving
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
+                          : 'bg-gradient-to-r from-yazaki-red to-red-600 text-white hover:from-red-600 hover:to-red-700'
+                      }`}
+                    >
+                      {isSaving ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sauvegarde...
+                        </>
+                      ) : (
+                        <>
+                          Suivant
+                          <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {/* Boutons de navigation */}
-        <div className="flex items-center justify-between pt-8 border-t border-gray-200">
-          <button
-            type="button"
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center ${
-              currentStep === 0
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            Précédent
-          </button>
-
-          {currentStep === steps.length - 1 ? (
-            <button
-              type="button"
-              onClick={handleGoToSummary}
-              className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
-            >
-              Voir le Résumé
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={isSaving}
-              className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center ${
-                isSaving
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gradient-to-r from-yazaki-red to-red-600 text-white hover:from-red-600 hover:to-red-700'
-              }`}
-            >
-              {isSaving ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Sauvegarde...
-                </>
-              ) : (
-                <>
-                  Suivant
-                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </>
-              )}
-            </button>
-          )}
-        </div>
       </div>
-    </div>
     </>
   );
 };
