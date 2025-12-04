@@ -8,8 +8,7 @@ import QuestionnaireSummary from './QuestionnaireSummary';
 import QuestionnaireReadOnly from './QuestionnaireReadOnly';
 import { getUserQuestionnaireResults, saveQuestionnaireProgress } from '../api/questionnaireService';
 // import { encodeObjectForFirebase } from '../utils/firebaseKeyEncoder';
-import { encodeObjectForFirebase, decodeObjectFromFirebase } from '../utils/firebaseKeyEncoder';
-
+import { encodeObjectForFirebase, decodeObjectFromFirebase, decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,6 +20,8 @@ const Questionnaire = ({ currentUser, onBack }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [originalAnswers, setOriginalAnswers] = useState({}); // Nouveau: sauvegarder les réponses originales
+  const [editingSkill, setEditingSkill] = useState(null); // Nouvelle: compétence en cours de modification
+  const [showSkillModal, setShowSkillModal] = useState(false); // Nouvelle: modal de modification
 
   // Vérifier si l'utilisateur a déjà rempli le questionnaire
   useEffect(() => {
@@ -116,8 +117,23 @@ const Questionnaire = ({ currentUser, onBack }) => {
   /**
    * Activer le mode modification depuis QuestionnaireReadOnly
    */
-  const handleEdit = () => {
-    console.log('✏️ Activation du mode modification');
+  // const handleEdit = () => {
+  //   console.log('✏️ Activation du mode modification');
+
+  //   // Sauvegarder les réponses actuelles comme backup
+  //   if (existingQuestionnaire && existingQuestionnaire.results) {
+  //     setOriginalAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
+  //     setAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
+  //   }
+
+  //   setIsEditMode(true);
+  //   setCurrentStep(0);
+  //   setShowSummary(false);
+
+  //   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // };
+const handleEdit = (editInfo) => {
+    console.log('✏️ Activation du mode modification:', editInfo);
 
     // Sauvegarder les réponses actuelles comme backup
     if (existingQuestionnaire && existingQuestionnaire.results) {
@@ -125,13 +141,79 @@ const Questionnaire = ({ currentUser, onBack }) => {
       setAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
     }
 
-    setIsEditMode(true);
-    setCurrentStep(0);
-    setShowSummary(false);
+    if (editInfo.editMode === 'single') {
+      // Mode modification d'une seule compétence
+      setEditingSkill(editInfo);
+      setShowSkillModal(true);
+    } else {
+      // Mode modification complète
+      setIsEditMode(true);
+      setCurrentStep(0);
+      setShowSummary(false);
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /**
+   * Fermer le modal de modification de compétence
+   */
+  const handleCloseSkillModal = () => {
+    setShowSkillModal(false);
+    setEditingSkill(null);
+  };
+
+  /**
+   * Sauvegarder la modification d'une seule compétence
+   */
+  const handleSaveSkill = async (newScore) => {
+    if (!editingSkill) return;
+
+    try {
+      setIsSaving(true);
+
+      // Mettre à jour les réponses
+      const updatedAnswers = { ...answers };
+      let current = updatedAnswers;
+
+      // Naviguer jusqu'à la compétence
+      for (let i = 0; i < editingSkill.categoryPath.length; i++) {
+        const key = editingSkill.categoryPath[i];
+        if (!current[key]) {
+          current[key] = {};
+        }
+        current = current[key];
+      }
+
+      // Mettre à jour le score
+      current[editingSkill.skillName] = newScore;
+
+      setAnswers(updatedAnswers);
+
+      // Sauvegarder dans Firebase
+      await saveProgress(updatedAnswers);
+
+      console.log('✅ Compétence mise à jour avec succès');
+
+      // Fermer le modal
+      handleCloseSkillModal();
+
+      // Recharger le questionnaire
+      const result = await getUserQuestionnaireResults(currentUser.matricule);
+      if (result && result.data) {
+        const decodedData = {
+          ...result.data,
+          results: result.data.results ? decodeObjectFromFirebase(result.data.results) : {}
+        };
+        setExistingQuestionnaire(decodedData);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde de la compétence');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   // Obtenir la valeur actuelle d'une compétence
   const getSkillValue = (step, skillName) => {
     let current = answers;
@@ -421,7 +503,7 @@ const Questionnaire = ({ currentUser, onBack }) => {
   }
 
   // Si le questionnaire existe déjà ET qu'on n'est pas en mode édition
-  if (existingQuestionnaire && !isEditMode) {
+  if (existingQuestionnaire && !isEditMode && !showSummary && !showSkillModal) {
     return (
       <QuestionnaireReadOnly
         currentUser={currentUser}
@@ -451,6 +533,111 @@ const Questionnaire = ({ currentUser, onBack }) => {
   const completedSteps = countCompletedSteps();
 
   return (
+    <>
+      {/* Modal de modification d'une compétence */}
+      {showSkillModal && editingSkill && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Modifier la compétence
+                </h3>
+                <button
+                  onClick={handleCloseSkillModal}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-gray-600 mt-2">
+                {decodeFirebaseKey(editingSkill.skillName)}
+              </p>
+            </div>
+
+            <div className="p-6">
+              {/* Échelle d'évaluation */}
+              <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-3">Échelle d'évaluation</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                  {scoreScale.map((score) => (
+                    <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
+                      {score.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sélection du score */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Sélectionnez votre niveau de compétence :
+                </label>
+                {scoreScale.map((scoreOption) => {
+                  // Obtenir le score actuel
+                  let currentScore = -1;
+                  let current = answers;
+                  for (const key of editingSkill.categoryPath) {
+                    current = current?.[key];
+                  }
+                  currentScore = current?.[editingSkill.skillName] ?? -1;
+
+                  return (
+                    <button
+                      key={scoreOption.value}
+                      onClick={() => handleSaveSkill(scoreOption.value)}
+                      disabled={isSaving}
+                      className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        currentScore === scoreOption.value
+                          ? 'border-yazaki-red bg-red-50 shadow-md'
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow'
+                      } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white mr-3 ${
+                            scoreOption.value === 0 ? 'bg-gray-400' :
+                            scoreOption.value === 1 ? 'bg-red-500' :
+                            scoreOption.value === 2 ? 'bg-orange-500' :
+                            scoreOption.value === 3 ? 'bg-yellow-500' :
+                            scoreOption.value === 4 ? 'bg-green-500' : 'bg-blue-500'
+                          }`}>
+                            {scoreOption.value}
+                          </span>
+                          <div>
+                            <p className="font-semibold text-gray-900">{scoreOption.label}</p>
+                            {scoreOption.description && (
+                              <p className="text-xs text-gray-600 mt-1">{scoreOption.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        {currentScore === scoreOption.value && (
+                          <svg className="w-6 h-6 text-yazaki-red" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={handleCloseSkillModal}
+                className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Questionnaire normal */}
     <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="card">
         {/* Badge Mode Édition si modification */}
@@ -700,6 +887,7 @@ const Questionnaire = ({ currentUser, onBack }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
