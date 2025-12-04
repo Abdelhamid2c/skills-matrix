@@ -6,8 +6,9 @@ import React, { useState, useEffect } from 'react';
 import { skillsData, scoreScale, generateQuestionnaireSteps } from '../assets/questions';
 import QuestionnaireSummary from './QuestionnaireSummary';
 import QuestionnaireReadOnly from './QuestionnaireReadOnly';
-import { getUserQuestionnaireResults } from '../api/questionnaireService';
-import { decodeObjectFromFirebase } from '../utils/firebaseKeyEncoder';
+import { getUserQuestionnaireResults, saveQuestionnaireProgress } from '../api/questionnaireService';
+// import { encodeObjectForFirebase } from '../utils/firebaseKeyEncoder';
+import { encodeObjectForFirebase, decodeObjectFromFirebase } from '../utils/firebaseKeyEncoder';
 
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
@@ -15,10 +16,11 @@ const Questionnaire = ({ currentUser, onBack }) => {
   const [answers, setAnswers] = useState({});
   const [steps, setSteps] = useState([]);
   const [showSummary, setShowSummary] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [existingQuestionnaire, setExistingQuestionnaire] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [originalAnswers, setOriginalAnswers] = useState({}); // Nouveau: sauvegarder les réponses originales
 
   // Vérifier si l'utilisateur a déjà rempli le questionnaire
   useEffect(() => {
@@ -35,15 +37,23 @@ const Questionnaire = ({ currentUser, onBack }) => {
 
         if (result && result.data) {
           console.log('✅ Questionnaire existant trouvé:', result.data);
-          setExistingQuestionnaire(result.data);
+
+          // Décoder les résultats si nécessaire
+          const decodedData = {
+            ...result.data,
+            results: result.data.results ? decodeObjectFromFirebase(result.data.results) : {}
+          };
+
+          setExistingQuestionnaire(decodedData);
 
           // Si mode édition, charger les réponses existantes
-          if (isEditMode && result.data.results) {
-            setAnswers(result.data.results);
+          if (isEditMode && decodedData.results) {
+            setAnswers(decodedData.results);
+            setOriginalAnswers(JSON.parse(JSON.stringify(decodedData.results))); // Copie profonde
             console.log('📝 Mode édition activé - Réponses chargées');
           }
         } else {
-          console.log('ℹ️ Aucun questionnaire existant - mode édition');
+          console.log('ℹ️ Aucun questionnaire existant');
         }
       } catch (error) {
         console.error('❌ Erreur lors de la vérification:', error);
@@ -79,12 +89,47 @@ const Questionnaire = ({ currentUser, onBack }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Annuler le mode édition
+  /**
+   * Annuler le mode modification et restaurer les réponses originales
+   */
   const handleCancelEdit = () => {
-    console.log('❌ Annulation du mode édition');
+    console.log('❌ Annulation du mode modification');
+
+    // Restaurer les réponses originales
+    setAnswers(JSON.parse(JSON.stringify(originalAnswers)));
+
+    // Quitter le mode édition
     setIsEditMode(false);
-    setAnswers({});
-    window.location.reload(); // Recharger pour afficher le mode lecture seule
+
+    // Retourner à l'étape 0
+    setCurrentStep(0);
+
+    // Cacher le résumé si affiché
+    setShowSummary(false);
+
+    // Scroll vers le haut
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    console.log('✅ Mode modification annulé - Réponses restaurées');
+  };
+
+  /**
+   * Activer le mode modification depuis QuestionnaireReadOnly
+   */
+  const handleEdit = () => {
+    console.log('✏️ Activation du mode modification');
+
+    // Sauvegarder les réponses actuelles comme backup
+    if (existingQuestionnaire && existingQuestionnaire.results) {
+      setOriginalAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
+      setAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
+    }
+
+    setIsEditMode(true);
+    setCurrentStep(0);
+    setShowSummary(false);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Obtenir la valeur actuelle d'une compétence
@@ -122,19 +167,132 @@ const Questionnaire = ({ currentUser, onBack }) => {
     return [...step.path, skillName].join(' > ');
   };
 
-  // Navigation
-  const handleNext = () => {
+  /**
+   * Sauvegarder automatiquement la progression
+   */
+  const saveProgress = async (updatedAnswers) => {
+    if (!currentUser || !currentUser.matricule) {
+      console.log('⚠️ Impossible de sauvegarder - utilisateur non connecté');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      console.log('💾 Sauvegarde automatique de la progression...');
+
+      // Normaliser les réponses pour la sauvegarde
+      const normalized = normalizeAnswers(skillsData, updatedAnswers);
+
+      // Encoder les clés pour Firebase
+      const encoded = encodeObjectForFirebase(normalized);
+
+      console.log('📦 Données normalisées:', normalized);
+      console.log('🔐 Données encodées pour Firebase:', encoded);
+
+      await saveQuestionnaireProgress(currentUser.matricule, encoded);
+
+      console.log('✅ Progression sauvegardée automatiquement');
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde automatique:', error);
+      // Ne pas bloquer l'utilisateur en cas d'erreur
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /**
+   * Fonction pour normaliser les réponses (même logique que QuestionnaireSummary)
+   */
+  const normalizeAnswers = (structure, userAnswers) => {
+    const normalized = {};
+
+    const processCategory = (categoryName, categoryData, answerPath = []) => {
+      if (Array.isArray(categoryData)) {
+        const categoryAnswers = {};
+        categoryData.forEach(skillName => {
+          let currentAnswer = userAnswers;
+          for (const key of [...answerPath, categoryName]) {
+            currentAnswer = currentAnswer?.[key];
+          }
+
+          const userValue = currentAnswer?.[skillName];
+          categoryAnswers[skillName] = userValue !== undefined && userValue !== null ? userValue : -1;
+        });
+
+        let current = normalized;
+        for (let i = 0; i < answerPath.length; i++) {
+          const key = answerPath[i];
+          if (!current[key]) {
+            current[key] = {};
+          }
+          current = current[key];
+        }
+        current[categoryName] = categoryAnswers;
+
+      } else if (typeof categoryData === 'object') {
+        Object.entries(categoryData).forEach(([subCatName, subCatData]) => {
+          processCategory(subCatName, subCatData, [...answerPath, categoryName]);
+        });
+      }
+    };
+
+    Object.entries(structure).forEach(([categoryName, categoryData]) => {
+      processCategory(categoryName, categoryData);
+    });
+
+    return normalized;
+  };
+
+  /**
+   * Gérer le passage à l'étape suivante avec sauvegarde
+   */
+  const handleNext = async () => {
     if (currentStep < steps.length - 1) {
+      console.log(`➡️ Passage à l'étape ${currentStep + 2}/${steps.length}`);
+
+      // Sauvegarder la progression avant de passer à l'étape suivante
+      await saveProgress(answers);
+
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
+  /**
+   * Gérer le retour à l'étape précédente
+   */
   const handlePrevious = () => {
     if (currentStep > 0) {
+      console.log(`⬅️ Retour à l'étape ${currentStep}/${steps.length}`);
       setCurrentStep(currentStep - 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  /**
+   * Gérer les changements de réponses
+   */
+  const handleAnswerChange = (categoryPath, skillName, value) => {
+    console.log(`📝 Réponse modifiée: ${categoryPath.join(' > ')} > ${skillName} = ${value}`);
+
+    setAnswers(prevAnswers => {
+      const newAnswers = { ...prevAnswers };
+      let current = newAnswers;
+
+      // Créer la structure imbriquée si nécessaire
+      for (let i = 0; i < categoryPath.length; i++) {
+        const key = categoryPath[i];
+        if (!current[key]) {
+          current[key] = {};
+        }
+        current = current[key];
+      }
+
+      // Définir la valeur
+      current[skillName] = value;
+
+      return newAnswers;
+    });
   };
 
   // Modifier handleSubmit pour afficher le résumé
@@ -150,11 +308,38 @@ const Questionnaire = ({ currentUser, onBack }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSuccess = (response) => {
+  const handleSuccess = async (response) => {
     console.log('✅ Questionnaire sauvegardé avec succès!', response);
-    setIsCompleted(true);
-    setIsEditMode(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Recharger les données depuis Firebase
+    try {
+      console.log('🔄 Rechargement du questionnaire...');
+
+      const result = await getUserQuestionnaireResults(currentUser.matricule);
+
+      if (result && result.data) {
+        console.log('✅ Questionnaire rechargé:', result.data);
+
+        // Réinitialiser tous les états
+        setExistingQuestionnaire(result.data);
+        setIsEditMode(false);
+        setShowSummary(false);
+        setAnswers({});
+
+        // Scroll vers le haut
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors du rechargement:', error);
+
+      // En cas d'erreur, utiliser les données locales
+      setExistingQuestionnaire({
+        results: answers,
+        submittedAt: new Date().toISOString()
+      });
+      setIsEditMode(false);
+      setShowSummary(false);
+    }
   };
 
   // Calculer le pourcentage de complétion basé sur le NOMBRE TOTAL de réponses
@@ -235,40 +420,6 @@ const Questionnaire = ({ currentUser, onBack }) => {
     );
   }
 
-  // Si le questionnaire est complété (après sauvegarde en mode édition)
-  if (isCompleted) {
-    return (
-      <div className="max-w-2xl mx-auto animate-fade-in">
-        <div className="card text-center">
-          <div className="mb-6">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            {isEditMode ? 'Questionnaire Mis à Jour !' : 'Questionnaire Complété !'}
-          </h2>
-          <p className="text-lg text-gray-700 mb-6">
-            Vos compétences ont été {isEditMode ? 'mises à jour' : 'enregistrées'} avec succès.
-          </p>
-
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="btn-primary"
-            >
-              Retour à l'accueil
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   // Si le questionnaire existe déjà ET qu'on n'est pas en mode édition
   if (existingQuestionnaire && !isEditMode) {
     return (
@@ -276,7 +427,7 @@ const Questionnaire = ({ currentUser, onBack }) => {
         currentUser={currentUser}
         questionnaireData={existingQuestionnaire}
         onBack={onBack}
-        onEdit={handleEnterEditMode}
+        onEdit={handleEdit}
       />
     );
   }
@@ -330,6 +481,17 @@ const Questionnaire = ({ currentUser, onBack }) => {
           </div>
         )}
 
+        {/* Indicateur de sauvegarde automatique */}
+        {isSaving && (
+          <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center">
+            <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span className="text-sm font-medium text-blue-800">💾 Sauvegarde en cours...</span>
+          </div>
+        )}
+
         {/* En-tête */}
         <div className="mb-8 border-b border-gray-200 pb-6">
           <div className="flex items-center justify-between mb-4">
@@ -339,7 +501,7 @@ const Questionnaire = ({ currentUser, onBack }) => {
             </h2>
             {currentUser && (
               <div className="text-right">
-                <p className="text-sm text-gray-600">Connecté en tant que</p>
+                <p className="text-sm text-gray-600">Collaborateur</p>
                 <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
                 <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
               </div>
@@ -348,137 +510,145 @@ const Questionnaire = ({ currentUser, onBack }) => {
 
           {/* Barre de progression */}
           <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-gray-700">
                 Étape {currentStep + 1} sur {steps.length}
-                <span className="text-xs text-gray-500 ml-2">
-                  ({completedSteps} section{completedSteps > 1 ? 's' : ''} complétée{completedSteps > 1 ? 's' : ''})
-                </span>
               </span>
               <span className="text-sm font-semibold text-yazaki-red">
-                {progress}% complété
+                {Math.round(((currentStep + 1) / steps.length) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
               <div
-                className="bg-gradient-to-r from-yazaki-red to-red-600 h-3 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
+                className="bg-gradient-to-r from-yazaki-red to-red-600 h-3 rounded-full transition-all duration-500 ease-out shadow-md"
+                style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
               ></div>
             </div>
           </div>
 
-          {/* Titre de la section actuelle */}
-          <div className="bg-gradient-to-r from-yazaki-red to-red-600 text-white p-4 rounded-lg shadow-md">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90 mb-1">{currentStepData.category}</p>
-                <h3 className="text-xl font-bold">
-                  {currentStepData.subCategory || currentStepData.category}
-                </h3>
-              </div>
-              <div className="text-right">
-                <p className="text-sm opacity-90">Compétences évaluées</p>
-                <p className="text-2xl font-bold">
-                  {answeredCount} / {totalSkills}
-                </p>
-              </div>
+          {/* Info de sauvegarde automatique */}
+          <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 mt-4">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-green-800">
+                <strong>Sauvegarde automatique activée</strong> - Vos réponses sont sauvegardées à chaque étape
+              </p>
             </div>
           </div>
+
+          {/* Titre de l'étape actuelle */}
+          {steps[currentStep] && (
+            <div className="mt-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                {steps[currentStep].title}
+              </h3>
+              {steps[currentStep].subtitle && (
+                <p className="text-gray-600 text-lg">
+                  {steps[currentStep].subtitle}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Échelle de notation (référence) */}
-        <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Échelle d'évaluation
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
-            {scoreScale.map((score) => (
-              <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
-                {score.label}
-              </div>
-            ))}
+        {/* Contenu de l'étape */}
+        <div className="mb-8">
+          {/* Échelle de notation (référence) */}
+          <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
+            <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Échelle d'évaluation
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+              {scoreScale.map((score) => (
+                <div key={score.value} className={`${score.color} px-3 py-2 rounded-lg text-xs font-medium text-center`}>
+                  {score.label}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Liste des compétences en colonnes */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {currentStepData.skills.map((skillName, index) => {
-            const currentValue = getSkillValue(currentStepData, skillName);
+          {/* Liste des compétences en colonnes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {currentStepData.skills.map((skillName, index) => {
+              const currentValue = getSkillValue(currentStepData, skillName);
 
-            return (
-              <div
-                key={index}
-                className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-yazaki-red transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                {/* En-tête de la question */}
-                <div className="mb-3">
-                  <div className="flex items-start gap-2 mb-2">
-                    <span className="flex-shrink-0 w-6 h-6 bg-yazaki-red text-white rounded-full flex items-center justify-center text-xs font-bold">
-                      {index + 1}
-                    </span>
-                    <h5 className="font-semibold text-gray-900 text-sm leading-tight flex-1">
-                      {skillName}
-                    </h5>
-                  </div>
-                  <p className="text-xs text-gray-500 ml-8 truncate" title={getSkillPath(currentStepData, skillName)}>
-                    {getSkillPath(currentStepData, skillName)}
-                  </p>
-                </div>
-
-                {/* Boutons radio verticaux compacts */}
-                <div className="ml-8 space-y-2">
-                  {scoreScale.map((score) => (
-                    <label
-                      key={score.value}
-                      className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
-                        currentValue === score.value
-                          ? `${score.color} border-current shadow-md`
-                          : `bg-white border-gray-300 hover:border-gray-400 text-gray-700`
-                      }`}
-                      title={score.description}
-                    >
-                      <input
-                        type="radio"
-                        name={`skill-${currentStep}-${index}`}
-                        value={score.value}
-                        checked={currentValue === score.value}
-                        onChange={() => updateSkillValue(currentStepData, skillName, score.value)}
-                        className="sr-only"
-                      />
-                      <span className="flex items-center w-full">
-                        <span className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
-                          currentValue === score.value
-                            ? 'border-current'
-                            : 'border-gray-400'
-                        }`}>
-                          {currentValue === score.value && (
-                            <span className="w-2 h-2 rounded-full bg-current"></span>
-                          )}
-                        </span>
-                        <span className="font-semibold text-sm mr-2">{score.value}</span>
-                        <span className="text-xs flex-1">{score.label.split(' - ')[1]}</span>
+              return (
+                <div
+                  key={index}
+                  className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-yazaki-red transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  {/* En-tête de la question */}
+                  <div className="mb-3">
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className="flex-shrink-0 w-6 h-6 bg-yazaki-red text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
                       </span>
-                    </label>
-                  ))}
+                      <h5 className="font-semibold text-gray-900 text-sm leading-tight flex-1">
+                        {skillName}
+                      </h5>
+                    </div>
+                    <p className="text-xs text-gray-500 ml-8 truncate" title={getSkillPath(currentStepData, skillName)}>
+                      {getSkillPath(currentStepData, skillName)}
+                    </p>
+                  </div>
+
+                  {/* Boutons radio verticaux compacts */}
+                  <div className="ml-8 space-y-2">
+                    {scoreScale.map((score) => (
+                      <label
+                        key={score.value}
+                        className={`flex items-center cursor-pointer px-3 py-2 rounded-lg border-2 transition-all duration-200 ${
+                          currentValue === score.value
+                            ? `${score.color} border-current shadow-md`
+                            : `bg-white border-gray-300 hover:border-gray-400 text-gray-700`
+                        }`}
+                        title={score.description}
+                      >
+                        <input
+                          type="radio"
+                          name={`skill-${currentStep}-${index}`}
+                          value={score.value}
+                          checked={currentValue === score.value}
+                          onChange={() => updateSkillValue(currentStepData, skillName, score.value)}
+                          className="sr-only"
+                        />
+                        <span className="flex items-center w-full">
+                          <span className={`w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center flex-shrink-0 ${
+                            currentValue === score.value
+                              ? 'border-current'
+                              : 'border-gray-400'
+                          }`}>
+                            {currentValue === score.value && (
+                              <span className="w-2 h-2 rounded-full bg-current"></span>
+                            )}
+                          </span>
+                          <span className="font-semibold text-sm mr-2">{score.value}</span>
+                          <span className="text-xs flex-1">{score.label.split(' - ')[1]}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Boutons de navigation */}
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-8 border-t border-gray-200">
           <button
             type="button"
             onClick={handlePrevious}
             disabled={currentStep === 0}
             className={`px-6 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center ${
               currentStep === 0
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-white text-yazaki-red border-2 border-yazaki-red hover:bg-yazaki-red hover:text-white shadow-md hover:shadow-lg'
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -487,30 +657,13 @@ const Questionnaire = ({ currentUser, onBack }) => {
             Précédent
           </button>
 
-          <div className="text-center">
-            <p className="text-sm text-gray-600 mb-1">
-              {answeredCount === totalSkills ? (
-                <span className="text-green-600 font-semibold flex items-center justify-center">
-                  <svg className="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Section complétée!
-                </span>
-              ) : (
-                <span className="text-yellow-600">
-                  {totalSkills - answeredCount} compétence{totalSkills - answeredCount > 1 ? 's' : ''} restante{totalSkills - answeredCount > 1 ? 's' : ''}
-                </span>
-              )}
-            </p>
-          </div>
-
-          {currentStep < steps.length - 1 ? (
+          {currentStep === steps.length - 1 ? (
             <button
               type="button"
-              onClick={handleNext}
-              className="px-6 py-3 bg-yazaki-red text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center"
+              onClick={handleGoToSummary}
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
             >
-              Suivant
+              Voir le Résumé
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
               </svg>
@@ -518,65 +671,34 @@ const Questionnaire = ({ currentUser, onBack }) => {
           ) : (
             <button
               type="button"
-              onClick={handleGoToSummary}
-              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
+              onClick={handleNext}
+              disabled={isSaving}
+              className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center ${
+                isSaving
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-yazaki-red to-red-600 text-white hover:from-red-600 hover:to-red-700'
+              }`}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              Voir le Résumé
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Sauvegarde...
+                </>
+              ) : (
+                <>
+                  Suivant
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
             </button>
           )}
         </div>
-
-        {/* Bouton retour à l'accueil */}
-        {onBack && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={onBack}
-              className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-200 flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Retour à l'accueil
-            </button>
-          </div>
-        )}
       </div>
-
-      {/* Si le questionnaire est complété, afficher le message de succès */}
-      {isCompleted && (
-        <div className="max-w-2xl mx-auto animate-fade-in">
-          <div className="card text-center">
-            <div className="mb-6">
-              <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
-              Questionnaire Complété !
-            </h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Vos compétences ont été enregistrées avec succès.
-            </p>
-
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                className="btn-primary"
-              >
-                Retour à l'accueil
-              </button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

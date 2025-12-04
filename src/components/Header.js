@@ -16,7 +16,7 @@ const Header = ({ onLoginClick, onSignInClick, showAuthButtons = true, onBackCli
 
   const handleSignInClick = (e) => {
     e.preventDefault();
-    console.log('Sign In button clicked');
+    console.log('Sign Up button clicked');
     if (onSignInClick) {
       onSignInClick();
     }
@@ -85,7 +85,7 @@ const Header = ({ onLoginClick, onSignInClick, showAuthButtons = true, onBackCli
                 onClick={handleSignInClick}
                 className="px-6 py-2 bg-yazaki-red text-white font-semibold rounded-lg hover:bg-yazaki-dark-red transition-all duration-200 shadow-md hover:shadow-lg"
               >
-                Sign In
+                Sign Up
               </button>
             </div>
           )}

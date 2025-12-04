@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { skillsData, scoreScale } from '../assets/questions';
 import { submitQuestionnaireResults } from '../api/questionnaireService';
+import { encodeObjectForFirebase } from '../utils/firebaseKeyEncoder';
 
 const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   const [normalizedResults, setNormalizedResults] = useState({});
@@ -89,10 +90,9 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
       Object.values(obj).forEach(value => {
         if (typeof value === 'number') {
           total++;
-          if (value >= 0) { // Compter seulement les réponses valides (>= 0)
+          if (value >= 0) // Compter seulement les réponses valides (>= 0)
             answered++;
-            totalScore += value;
-          }
+          totalScore += value;
         } else if (typeof value === 'object') {
           countAnswers(value);
         }
@@ -135,41 +135,41 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
    * Soumettre les résultats au backend
    */
   const handleSubmit = async () => {
-    if (!currentUser || !currentUser.matricule) {
-      alert('Erreur: Utilisateur non identifié');
-      return;
-    }
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('🎯 BOUTON "CONFIRMER ET ENVOYER" CLIQUÉ');
+    console.log('═══════════════════════════════════════════════════════');
 
     setIsSubmitting(true);
 
     try {
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('💾 SOUMISSION DES RÉSULTATS DU QUESTIONNAIRE');
-      console.log('═══════════════════════════════════════════════════════');
-      console.log('👤 Matricule:', currentUser.matricule);
-      console.log('📊 Résultats:', normalizedResults);
-      console.log('📈 Statistiques:', stats);
-      console.log('═══════════════════════════════════════════════════════');
+      console.log('📤 Soumission du questionnaire pour:', currentUser.matricule);
+
+      // Encoder les résultats avant envoi
+      const encodedResults = encodeObjectForFirebase(normalizedResults);
+
+      console.log('📦 Résultats normalisés:', normalizedResults);
+      console.log('🔐 Résultats encodés:', encodedResults);
 
       const response = await submitQuestionnaireResults(
         currentUser.matricule,
-        normalizedResults
+        encodedResults
       );
 
-      console.log('✅ Réponse du serveur:', response);
+      console.log('✅ Questionnaire soumis avec succès!');
+      console.log('📦 Réponse:', response);
 
-      // Appeler le callback de succès
-      if (onSuccess) {
-        onSuccess(response);
-      } else {
-        alert('Questionnaire soumis avec succès!');
+      if (response.success) {
+        // Appeler onSuccess pour retourner vers QuestionnaireReadOnly
+        if (onSuccess) {
+          onSuccess(response);
+        }
       }
-
     } catch (error) {
-      console.error('❌ Erreur:', error);
-      alert(`Erreur lors de la soumission: ${error.message}`);
+      console.error('❌ Erreur lors de la soumission:', error);
+      alert('Erreur lors de la soumission du questionnaire. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
+      console.log('═══════════════════════════════════════════════════════');
     }
   };
 

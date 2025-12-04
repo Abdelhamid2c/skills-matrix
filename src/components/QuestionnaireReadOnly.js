@@ -349,7 +349,7 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
             <div>
               <p className="font-semibold text-yellow-800">Mode Lecture Seule</p>
               <p className="text-sm text-yellow-700">
-                Ce questionnaire a déjà été complété. Les réponses ne peuvent plus être modifiées.
+                Ce questionnaire a déjà été complété. Vous pouvez le modifier.
               </p>
             </div>
           </div>

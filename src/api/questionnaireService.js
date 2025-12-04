@@ -94,8 +94,38 @@ export const checkQuestionnaireExists = async (matricule) => {
   }
 };
 
+/**
+ * Sauvegarder la progression du questionnaire (sauvegarde partielle)
+ */
+export const saveQuestionnaireProgress = async (matricule, partialResults) => {
+  try {
+    console.log('💾 Sauvegarde de la progression pour:', matricule);
+
+    const response = await axios.post(
+      `${API_URL}/questionnaire/save-progress`,
+      {
+        matricule,
+        results: partialResults
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    console.log('✅ Progression sauvegardée');
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la sauvegarde de la progression:', error);
+    throw error;
+  }
+};
+
 export default {
   submitQuestionnaireResults,
   getUserQuestionnaireResults,
-  checkQuestionnaireExists
+  checkQuestionnaireExists,
+  saveQuestionnaireProgress
 };

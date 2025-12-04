@@ -22,7 +22,7 @@ function App() {
   };
 
   const handleSignInClick = () => {
-    console.log('Navigation vers Formulaire (Sign In)');
+    console.log('Navigation vers Formulaire (Sign Up)');
     // Sign In = Accès direct au formulaire pour créer un nouveau collaborateur
     setCurrentPage('form');
   };
