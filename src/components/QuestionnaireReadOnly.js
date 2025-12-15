@@ -371,8 +371,8 @@ console.log('📏 Longueur:', all_responses.length);
    * Chaque tableau correspond aux compétences dans l'ordre du questionnaire
    */
 const ACCOUNTABILITY_ARRAYS = {
-  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
   'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -391,18 +391,33 @@ const ACCOUNTABILITY_ARRAYS = {
     const accountabilityArray = ACCOUNTABILITY_ARRAYS[userFunction] || [];
 
     // ============================================
+    // Fonction utilitaire pour obtenir max value selon l'index
+    // ============================================
+    const getMaxValueForIndex = (index) => {
+      // Soft Skills: indices 83-86 (4 compétences) -> max = 10
+      if (index >= 82 && index <= 85) return 4;
+      // Management Skills: indices 87-92 (6 compétences) -> max = 10
+      // if (index >= 87 && index <= 92) return 10;
+      // Behavioral Traits: indices 93-100 (8 compétences) -> max = 10
+      if (index >= 92 && index <= 99) return 10;
+      // Communication Skills: indices 101-105 (5 compétences) -> max = 4
+      // Technical Skills: indices 0-82 -> max = 4
+      return 4;
+    };
+
+    // ============================================
     // 1. Calcul Technical Capability Ratio (indices 0 à 82)
     // ============================================
-    const TECHNICAL_SKILLS_COUNT = 83;
+    const TECHNICAL_SKILLS_START = 0;
+    const TECHNICAL_SKILLS_END = 81;
     const TECHNICAL_MAX_VALUE = 4;
     let technicalSum = 0;
     let technicalMaxSum = 0;
 
-    for (let i = 0; i < TECHNICAL_SKILLS_COUNT && i < all_responses.length; i++) {
+    for (let i = TECHNICAL_SKILLS_START; i <= TECHNICAL_SKILLS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
       const accountability = accountabilityArray[i] || 0;
 
-      // Ne compter que les réponses valides (pas -1)
       if (response !== -1 && response !== null && response !== undefined) {
         technicalSum += response * accountability;
         technicalMaxSum += accountability * TECHNICAL_MAX_VALUE;
@@ -414,21 +429,101 @@ const ACCOUNTABILITY_ARRAYS = {
       : 0;
 
     // ============================================
-    // 2. Calcul Accountable Tasks (toutes les 105 compétences)
+    // 2. Calcul Soft Skills Ratio (indices 83 à 86)
     // ============================================
-    // Définir les indices où max_value = 10 (les autres = 4)
-    // Indices 83-86: Soft Skills (4 compétences, max=10)
-    // Indices 87-92: Management Skills (6 compétences, max=10)
-    // Indices 93-100: Behavioral Traits (8 compétences, max=10)
-    // Indices 101-105: Communication Skills (5 compétences, max=4)
+    const SOFT_SKILLS_START = 82;
+    const SOFT_SKILLS_END = 85;
+    const SOFT_SKILLS_MAX_VALUE = 4;
+    let softSkillsSum = 0;
+    let softSkillsMaxSum = 0;
 
-    const getMaxValueForIndex = (index) => {
-      // Soft Skills: indices 83-86 (4 compétences) -> max = 10
-      if (index >= 92 && index < 100) return 10;
+    for (let i = SOFT_SKILLS_START; i <= SOFT_SKILLS_END && i < all_responses.length; i++) {
+      const response = all_responses[i];
+      const accountability = accountabilityArray[i] || 0;
 
-      return 4;
-    };
+      if (response !== -1 && response !== null && response !== undefined) {
+        softSkillsSum += response * accountability;
+        softSkillsMaxSum += accountability * SOFT_SKILLS_MAX_VALUE;
+      }
+    }
 
+    const softSkillsRatio = softSkillsMaxSum > 0
+      ? Math.round((softSkillsSum / softSkillsMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 3. Calcul Management Skills Ratio (indices 87 à 92)
+    // ============================================
+    const MANAGEMENT_SKILLS_START = 86;
+    const MANAGEMENT_SKILLS_END = 91;
+    const MANAGEMENT_SKILLS_MAX_VALUE = 4;
+    let managementSkillsSum = 0;
+    let managementSkillsMaxSum = 0;
+
+    for (let i = MANAGEMENT_SKILLS_START; i <= MANAGEMENT_SKILLS_END && i < all_responses.length; i++) {
+      const response = all_responses[i];
+      const accountability = accountabilityArray[i] || 0;
+
+      if (response !== -1 && response !== null && response !== undefined) {
+        managementSkillsSum += response * accountability;
+        managementSkillsMaxSum += accountability * MANAGEMENT_SKILLS_MAX_VALUE;
+      }
+    }
+
+    const managementSkillsRatio = managementSkillsMaxSum > 0
+      ? Math.round((managementSkillsSum / managementSkillsMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 4. Calcul Behavioral Traits Ratio (indices 93 à 100)
+    // ============================================
+    const BEHAVIORAL_TRAITS_START = 92;
+    const BEHAVIORAL_TRAITS_END = 99;
+    const BEHAVIORAL_TRAITS_MAX_VALUE = 10;
+    let behavioralTraitsSum = 0;
+    let behavioralTraitsMaxSum = 0;
+
+    for (let i = BEHAVIORAL_TRAITS_START; i <= BEHAVIORAL_TRAITS_END && i < all_responses.length; i++) {
+      const response = all_responses[i];
+      const accountability = accountabilityArray[i] || 0;
+
+      if (response !== -1 && response !== null && response !== undefined) {
+        behavioralTraitsSum += response * accountability;
+        behavioralTraitsMaxSum += accountability * BEHAVIORAL_TRAITS_MAX_VALUE;
+      }
+    }
+
+    const behavioralTraitsRatio = behavioralTraitsMaxSum > 0
+      ? Math.round((behavioralTraitsSum / behavioralTraitsMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 5. Calcul Communication Skills Ratio (indices 101 à 105)
+    // ============================================
+    const COMMUNICATION_SKILLS_START = 100;
+    const COMMUNICATION_SKILLS_END = 104;
+    const COMMUNICATION_SKILLS_MAX_VALUE = 4;
+    let communicationSkillsSum = 0;
+    let communicationSkillsMaxSum = 0;
+
+    for (let i = COMMUNICATION_SKILLS_START; i <= COMMUNICATION_SKILLS_END && i < all_responses.length; i++) {
+      const response = all_responses[i];
+      console.log('Response[', i, ']:', response);
+      const accountability = accountabilityArray[i] || 0;
+
+      if (response !== -1 && response !== null && response !== undefined) {
+        communicationSkillsSum += response * accountability;
+        communicationSkillsMaxSum += accountability * COMMUNICATION_SKILLS_MAX_VALUE;
+      }
+    }
+
+    const communicationSkillsRatio = communicationSkillsMaxSum > 0
+      ? Math.round((communicationSkillsSum / communicationSkillsMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 6. Calcul Accountable Tasks (toutes les 105 compétences)
+    // ============================================
     let accountableSum = 0;
     let accountableMaxSum = 0;
 
@@ -437,7 +532,6 @@ const ACCOUNTABILITY_ARRAYS = {
       const accountability = accountabilityArray[i] || 0;
       const maxValue = getMaxValueForIndex(i);
 
-      // Ne compter que les réponses valides (pas -1)
       if (response !== -1 && response !== null && response !== undefined) {
         accountableSum += response * accountability;
         accountableMaxSum += accountability * maxValue;
@@ -449,7 +543,7 @@ const ACCOUNTABILITY_ARRAYS = {
       : 0;
 
     // ============================================
-    // 3. Calcul Capability Ratio Overall PP (toutes compétences, sans accountability)
+    // 7. Calcul Capability Ratio Overall PP (toutes compétences, sans accountability)
     // ============================================
     let totalSum = 0;
     let totalMaxSum = 0;
@@ -458,7 +552,6 @@ const ACCOUNTABILITY_ARRAYS = {
       const response = all_responses[i];
       const maxValue = getMaxValueForIndex(i);
 
-      // Ne compter que les réponses valides (pas -1)
       if (response !== -1 && response !== null && response !== undefined) {
         totalSum += response;
         totalMaxSum += maxValue;
@@ -469,15 +562,14 @@ const ACCOUNTABILITY_ARRAYS = {
       ? Math.round((totalSum / totalMaxSum) * 100)
       : 0;
 
-    // Les autres KPIs restent fixes pour l'instant
     return {
       capabilityRatioOverallPP,
       capabilityRatioAccountableTasks,
       technicalCapabilityRatioOverallPP,
-      softSkillsRatio: 85,
-      managementSkillsRatio: 70,
-      behavioralTraitsRatio: 90,
-      communicationSkillsRatio: 88
+      softSkillsRatio,
+      managementSkillsRatio,
+      behavioralTraitsRatio,
+      communicationSkillsRatio
     };
   };
 
