@@ -13,6 +13,105 @@ import { decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
 const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit }) => {
   const { results, submittedAt, lastSaved, isComplete } = questionnaireData;
   const [expandedCategories, setExpandedCategories] = useState({});
+  console.log('📋 Questionnaire Data:', questionnaireData.results);
+
+  const transformResultsToArray = () => {
+  const all_responses = [];
+
+  // Ordre exact des catégories selon skillsData
+  const orderedStructure = {
+    "Technical Skills": {
+      "Generic": [
+        "PP Obeya", "KSK", "Office Tools (Excel, Word…)", "TIGD", "GPMS",
+        "Harness XC, CapitalH/M", "APD Tool", "ProdMon", "CAD Software (AutoCad, Catia…)"
+      ],
+      "PCC & RFQ": [
+        "PCC Preparation and Update", "Target Costing Activity",
+        "Tooling Capacity and Concept Definition", "Equipment List and Spending Plan preparation",
+        "Budget Forecast Preparation and Monitoring", "Ramp-Up Cost Evaluation and Follow-Up"
+      ],
+      "Product & Process Assurance": [
+        "SAP & data management", "Prototype data management", "Spare Parts data management",
+        "PM creation", "Key Product Caracteristics", "Drawing Analysis (Complexity & synergy)",
+        "Eng Change Management", "ECM (ECR Feasibility)", "ECM (ECR cost Evaluation)",
+        "ECR Follow-Up and Implementation", "Wire tuning Activity", "Tube unification Activity",
+        "BOM Verification", "Matching Data Preparation", "DFM Execution", "DIS Execution",
+        "Similar component analysis", "Handling Manual analysis", "NTI Management"
+      ],
+      "Process Design": {
+        "Manufacturing Process Design": [
+          "Capacity Study", "Process design KPIs calculation", "WPO design", "REFA basics",
+          "Plausibility", "CPC gum claims creation", "Kakotora / Must item list",
+          "Production module time affectation", "IE ECR Tracking", "IE ECR Evaluation & 4M impact",
+          "Subassembly decision matrix", "coiling method definition", "Process \"Line\" Concept",
+          "Process flow chart", "Sub-assemblies Definition", "Work Subdivision",
+          "Splice Decision Matrix", "Definition of off-line processes", "Operators Skills Matrix",
+          "Theoretical Time Evaluation SWT", "Fluctuation Definition and Analysis",
+          "Missing Operations definition", "Equipment List Definition",
+          "Density and Interferance analysis", "Work Area Map definition",
+          "Work Instruction", "Operation Normes", "TIGD Exception List"
+        ],
+        "Technical Process Design": [
+          "Theoretical Ergonomics assessment", "Practical Ergonomics assessment",
+          "Assembly Jig Board Design Evaluation", "Connection Tools definition",
+          "Assembly jig parts/forks review", "Equipment/tool specification & confirmation"
+        ],
+        "Manufacturing Process Capability": [
+          "Time Measurement", "Videos shooting", "Videos Analysis",
+          "Balancing Scenarios and Plan", "Work Combination Table",
+          "Work Balance Chart Preparation", "YAMAZUMI Chart Preparation",
+          "Run Activities Execution", "Off line Equipment Stress tests",
+          "Ramp-Up Per station and Line Ramp-Up"
+        ]
+      },
+      "MPSO & RFMEA": [
+        "Product FMEA Execution", "RFMEA by workstation Execution",
+        "Advanced MPSO Execution", "Official MPSO Execution"
+      ]
+    },
+    "Soft Skills": [
+      "Emotional intelligence", "Problem-solving", "Adaptability", "Conflict resolution"
+    ],
+    "Management Skills": [
+      "Project planning & execution", "Process Design KPI monitoring",
+      "Budgeting & resource allocation", "Risk management",
+      "Strategic thinking", "Team leadership & delegation"
+    ],
+    "Behavioral Traits": [
+      "Accountability", "Initiative", "Reliability", "Collaboration",
+      "Self Satisfaction", "Motivation", "Pride to be part of PP", "Growth mindset"
+    ],
+    "Communication Skills": [
+      "Presentations Preparation", "Presentations Delivery",
+      "English Language Speaking", "English Language Writing",
+      "Outcomes and Meeting Minutes"
+    ]
+  };
+
+  // Fonction récursive pour parcourir la structure et extraire les valeurs
+  const extractScores = (structure, resultsData) => {
+    Object.entries(structure).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        // C'est un tableau de compétences
+        value.forEach(skillName => {
+          const score = resultsData?.[key]?.[skillName];
+          all_responses.push(score !== undefined && score !== null ? score : -1);
+        });
+      } else if (typeof value === 'object') {
+        // C'est un objet (sous-catégorie)
+        extractScores(value, resultsData?.[key] || {});
+      }
+    });
+  };
+
+  extractScores(orderedStructure, results);
+
+  return all_responses;
+};
+const all_responses = transformResultsToArray();
+console.log('📊 all_responses:', all_responses);
+console.log('📏 Longueur:', all_responses.length);
+
 
   // Formater la date
   const formatDate = (dateString) => {
@@ -86,6 +185,7 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
       });
     }
   };
+
 
   // Calculer les statistiques
   const calculateStats = () => {
@@ -267,13 +367,39 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
   };
 
   /**
+   * Tableaux de pondération pour chaque fonction (1 = tâche accountable, 0 = non accountable)
+   * Chaque tableau correspond aux compétences dans l'ordre du questionnaire
+   */
+const ACCOUNTABILITY_ARRAYS = {
+  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
+  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
+  'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+};
+
+  /**
    * Calculer les indicateurs de performance
    */
   const calculateKPIs = () => {
-    // Calculer capabilityRatioOverallPP dynamiquement
+    // Variables pour capabilityRatioOverallPP
     let totalScore = 0;
-    let totalQuestions = 0;
     let totalMaxPossible = 0;
+
+    // Variables pour capabilityRatioAccountableTasks
+    let accountableScore = 0;
+    let accountableMaxPossible = 0;
+
+    // Index pour parcourir les tableaux d'accountability
+    let skillIndex = 0;
+
+    // Récupérer la fonction de l'utilisateur
+    const userFunction = currentUser?.fonction || currentUser?.function || '';
+    const accountabilityArray = ACCOUNTABILITY_ARRAYS[userFunction] || [];
 
     const processCategory = (data, parentPath = []) => {
       if (!data) return;
@@ -289,14 +415,24 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
             const maxValue = scale && scale.length > 0
               ? Math.max(...scale.map(s => s.value))
               : 4; // Par défaut 4
-            console.log('maxValue for', categoryPath.join('.'), 'is', maxValue);
+
             Object.entries(value).forEach(([skillName, score]) => {
               // Ne compter que les réponses valides (pas -1, null ou undefined)
               if (score !== -1 && score !== null && score !== undefined) {
+                // Pour capabilityRatioOverallPP
                 totalScore += score;
-                totalQuestions++;
                 totalMaxPossible += maxValue;
+
+                // Pour capabilityRatioAccountableTasks
+                if (accountabilityArray.length > 0 && skillIndex < accountabilityArray.length) {
+                  const isAccountable = accountabilityArray[skillIndex];
+                  if (isAccountable === 1) {
+                    accountableScore += score;
+                    accountableMaxPossible += maxValue;
+                  }
+                }
               }
+              skillIndex++;
             });
           } else {
             // C'est une sous-catégorie, continuer récursivement
@@ -308,17 +444,43 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
 
     processCategory(results);
 
-    // Formule: (somme des réponses / (nombre de questions * valeur max)) * 100
-    // Équivalent à: somme des réponses * (1 / nombre de questions) * (100 / valeur max moyenne)
+    // Calcul capabilityRatioOverallPP
     const capabilityRatioOverallPP = totalMaxPossible > 0
       ? Math.round((totalScore / totalMaxPossible) * 100)
+      : 0;
+
+    // Calcul capabilityRatioAccountableTasks
+    const capabilityRatioAccountableTasks = accountableMaxPossible > 0
+      ? Math.round((accountableScore / accountableMaxPossible) * 100)
+      : 0;
+
+    // Calcul Technical Capability Ratio (indices 0 à 82, soit 83 compétences techniques)
+    const TECHNICAL_SKILLS_COUNT = 83;
+    const MAX_VALUE = 4;
+    let technicalSum = 0;
+    let technicalMaxSum = 0;
+
+    for (let i = 0; i < TECHNICAL_SKILLS_COUNT && i < all_responses.length; i++) {
+      console.log('🔧 Compétence technique', i, 'Score:', all_responses[i], 'Accountability:', accountabilityArray[i])  ;
+      const response = all_responses[i];
+      const accountability = accountabilityArray[i] || 0;
+
+      // Ne compter que les réponses valides (pas -1)
+      if (response !== -1 && response !== null && response !== undefined) {
+        technicalSum += response * accountability;
+        technicalMaxSum += accountability * MAX_VALUE;
+      }
+    }
+
+    const technicalCapabilityRatioOverallPP = technicalMaxSum > 0
+      ? Math.round((technicalSum / technicalMaxSum) * 100)
       : 0;
 
     // Les autres KPIs restent fixes pour l'instant
     return {
       capabilityRatioOverallPP,
-      capabilityRatioAccountableTasks: 82,
-      technicalCapabilityRatioOverallPP: 68,
+      capabilityRatioAccountableTasks,
+      technicalCapabilityRatioOverallPP,
       softSkillsRatio: 85,
       managementSkillsRatio: 70,
       behavioralTraitsRatio: 90,
