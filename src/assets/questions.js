@@ -172,7 +172,7 @@ export const behavioralScoreScale = [
  * Catégories qui utilisent l'échelle comportementale (0-10)
  */
 export const behavioralCategories = [
-  'Communication Skills',
+  // 'Communication Skills',
   'Behavioral Traits',
 
 ];

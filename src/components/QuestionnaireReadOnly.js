@@ -371,109 +371,102 @@ console.log('📏 Longueur:', all_responses.length);
    * Chaque tableau correspond aux compétences dans l'ordre du questionnaire
    */
 const ACCOUNTABILITY_ARRAYS = {
-  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
-  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'PE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
   'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 };
 
   /**
    * Calculer les indicateurs de performance
    */
   const calculateKPIs = () => {
-    // Variables pour capabilityRatioOverallPP
-    let totalScore = 0;
-    let totalMaxPossible = 0;
-
-    // Variables pour capabilityRatioAccountableTasks
-    let accountableScore = 0;
-    let accountableMaxPossible = 0;
-
-    // Index pour parcourir les tableaux d'accountability
-    let skillIndex = 0;
-
     // Récupérer la fonction de l'utilisateur
     const userFunction = currentUser?.fonction || currentUser?.function || '';
     const accountabilityArray = ACCOUNTABILITY_ARRAYS[userFunction] || [];
 
-    const processCategory = (data, parentPath = []) => {
-      if (!data) return;
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (typeof value === 'object' && value !== null) {
-          if (typeof Object.values(value)[0] === 'number') {
-            // C'est une catégorie de compétences avec des scores
-            const categoryPath = [...parentPath, key];
-            const scale = getScaleForCategory(categoryPath);
-
-            // Déterminer la valeur maximale (4 ou 10) selon l'échelle
-            const maxValue = scale && scale.length > 0
-              ? Math.max(...scale.map(s => s.value))
-              : 4; // Par défaut 4
-
-            Object.entries(value).forEach(([skillName, score]) => {
-              // Ne compter que les réponses valides (pas -1, null ou undefined)
-              if (score !== -1 && score !== null && score !== undefined) {
-                // Pour capabilityRatioOverallPP
-                totalScore += score;
-                totalMaxPossible += maxValue;
-
-                // Pour capabilityRatioAccountableTasks
-                if (accountabilityArray.length > 0 && skillIndex < accountabilityArray.length) {
-                  const isAccountable = accountabilityArray[skillIndex];
-                  if (isAccountable === 1) {
-                    accountableScore += score;
-                    accountableMaxPossible += maxValue;
-                  }
-                }
-              }
-              skillIndex++;
-            });
-          } else {
-            // C'est une sous-catégorie, continuer récursivement
-            processCategory(value, [...parentPath, key]);
-          }
-        }
-      });
-    };
-
-    processCategory(results);
-
-    // Calcul capabilityRatioOverallPP
-    const capabilityRatioOverallPP = totalMaxPossible > 0
-      ? Math.round((totalScore / totalMaxPossible) * 100)
-      : 0;
-
-    // Calcul capabilityRatioAccountableTasks
-    const capabilityRatioAccountableTasks = accountableMaxPossible > 0
-      ? Math.round((accountableScore / accountableMaxPossible) * 100)
-      : 0;
-
-    // Calcul Technical Capability Ratio (indices 0 à 82, soit 83 compétences techniques)
+    // ============================================
+    // 1. Calcul Technical Capability Ratio (indices 0 à 82)
+    // ============================================
     const TECHNICAL_SKILLS_COUNT = 83;
-    const MAX_VALUE = 4;
+    const TECHNICAL_MAX_VALUE = 4;
     let technicalSum = 0;
     let technicalMaxSum = 0;
 
     for (let i = 0; i < TECHNICAL_SKILLS_COUNT && i < all_responses.length; i++) {
-      console.log('🔧 Compétence technique', i, 'Score:', all_responses[i], 'Accountability:', accountabilityArray[i])  ;
       const response = all_responses[i];
       const accountability = accountabilityArray[i] || 0;
 
       // Ne compter que les réponses valides (pas -1)
       if (response !== -1 && response !== null && response !== undefined) {
         technicalSum += response * accountability;
-        technicalMaxSum += accountability * MAX_VALUE;
+        technicalMaxSum += accountability * TECHNICAL_MAX_VALUE;
       }
     }
 
     const technicalCapabilityRatioOverallPP = technicalMaxSum > 0
       ? Math.round((technicalSum / technicalMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 2. Calcul Accountable Tasks (toutes les 105 compétences)
+    // ============================================
+    // Définir les indices où max_value = 10 (les autres = 4)
+    // Indices 83-86: Soft Skills (4 compétences, max=10)
+    // Indices 87-92: Management Skills (6 compétences, max=10)
+    // Indices 93-100: Behavioral Traits (8 compétences, max=10)
+    // Indices 101-105: Communication Skills (5 compétences, max=4)
+
+    const getMaxValueForIndex = (index) => {
+      // Soft Skills: indices 83-86 (4 compétences) -> max = 10
+      if (index >= 92 && index < 100) return 10;
+
+      return 4;
+    };
+
+    let accountableSum = 0;
+    let accountableMaxSum = 0;
+
+    for (let i = 0; i < all_responses.length; i++) {
+      const response = all_responses[i];
+      const accountability = accountabilityArray[i] || 0;
+      const maxValue = getMaxValueForIndex(i);
+
+      // Ne compter que les réponses valides (pas -1)
+      if (response !== -1 && response !== null && response !== undefined) {
+        accountableSum += response * accountability;
+        accountableMaxSum += accountability * maxValue;
+      }
+    }
+
+    const capabilityRatioAccountableTasks = accountableMaxSum > 0
+      ? Math.round((accountableSum / accountableMaxSum) * 100)
+      : 0;
+
+    // ============================================
+    // 3. Calcul Capability Ratio Overall PP (toutes compétences, sans accountability)
+    // ============================================
+    let totalSum = 0;
+    let totalMaxSum = 0;
+
+    for (let i = 0; i < all_responses.length; i++) {
+      const response = all_responses[i];
+      const maxValue = getMaxValueForIndex(i);
+
+      // Ne compter que les réponses valides (pas -1)
+      if (response !== -1 && response !== null && response !== undefined) {
+        totalSum += response;
+        totalMaxSum += maxValue;
+      }
+    }
+
+    const capabilityRatioOverallPP = totalMaxSum > 0
+      ? Math.round((totalSum / totalMaxSum) * 100)
       : 0;
 
     // Les autres KPIs restent fixes pour l'instant
