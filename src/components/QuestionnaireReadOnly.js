@@ -270,9 +270,53 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
    * Calculer les indicateurs de performance
    */
   const calculateKPIs = () => {
-    // Valeurs fixes temporaires - à calculer dynamiquement plus tard
+    // Calculer capabilityRatioOverallPP dynamiquement
+    let totalScore = 0;
+    let totalQuestions = 0;
+    let totalMaxPossible = 0;
+
+    const processCategory = (data, parentPath = []) => {
+      if (!data) return;
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (typeof value === 'object' && value !== null) {
+          if (typeof Object.values(value)[0] === 'number') {
+            // C'est une catégorie de compétences avec des scores
+            const categoryPath = [...parentPath, key];
+            const scale = getScaleForCategory(categoryPath);
+
+            // Déterminer la valeur maximale (4 ou 10) selon l'échelle
+            const maxValue = scale && scale.length > 0
+              ? Math.max(...scale.map(s => s.value))
+              : 4; // Par défaut 4
+            console.log('maxValue for', categoryPath.join('.'), 'is', maxValue);
+            Object.entries(value).forEach(([skillName, score]) => {
+              // Ne compter que les réponses valides (pas -1, null ou undefined)
+              if (score !== -1 && score !== null && score !== undefined) {
+                totalScore += score;
+                totalQuestions++;
+                totalMaxPossible += maxValue;
+              }
+            });
+          } else {
+            // C'est une sous-catégorie, continuer récursivement
+            processCategory(value, [...parentPath, key]);
+          }
+        }
+      });
+    };
+
+    processCategory(results);
+
+    // Formule: (somme des réponses / (nombre de questions * valeur max)) * 100
+    // Équivalent à: somme des réponses * (1 / nombre de questions) * (100 / valeur max moyenne)
+    const capabilityRatioOverallPP = totalMaxPossible > 0
+      ? Math.round((totalScore / totalMaxPossible) * 100)
+      : 0;
+
+    // Les autres KPIs restent fixes pour l'instant
     return {
-      capabilityRatioOverallPP: 75,
+      capabilityRatioOverallPP,
       capabilityRatioAccountableTasks: 82,
       technicalCapabilityRatioOverallPP: 68,
       softSkillsRatio: 85,
