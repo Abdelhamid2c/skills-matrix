@@ -123,9 +123,59 @@ export const saveQuestionnaireProgress = async (matricule, partialResults) => {
   }
 };
 
+
+/**
+ * Sauvegarder les KPIs dans la base de données
+ */
+export const saveKPIs = async (matricule, kpis) => {
+  try {
+    console.log('📊 Sauvegarde des KPIs pour:', matricule);
+    console.log('KPIs:', kpis);
+
+    const response = await axios.put(
+      `${API_URL}/questionnaire/${matricule}/kpis`,
+      {
+        kpis: {
+          capabilityRatioOverallPP: kpis.capabilityRatioOverallPP,
+          capabilityRatioAccountableTasks: kpis.capabilityRatioAccountableTasks,
+          technicalCapabilityRatioOverallPP: kpis.technicalCapabilityRatioOverallPP,
+          softSkillsRatio: kpis.softSkillsRatio,
+          managementSkillsRatio: kpis.managementSkillsRatio,
+          behavioralTraitsRatio: kpis.behavioralTraitsRatio,
+          communicationSkillsRatio: kpis.communicationSkillsRatio
+        },
+        updatedAt: new Date().toISOString()
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
+
+    console.log('✅ KPIs sauvegardés avec succès:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la sauvegarde des KPIs:', error);
+
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Erreur lors de la sauvegarde des KPIs');
+    } else if (error.request) {
+      throw new Error('Impossible de contacter le serveur');
+    } else {
+      throw new Error('Erreur lors de la préparation de la requête');
+    }
+  }
+};
+
+
+
+
 export default {
   submitQuestionnaireResults,
   getUserQuestionnaireResults,
   checkQuestionnaireExists,
-  saveQuestionnaireProgress
+  saveQuestionnaireProgress,
+  saveKPIs
 };

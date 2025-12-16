@@ -16,6 +16,8 @@ import QuestionnaireSummary from './QuestionnaireSummary';
 import QuestionnaireReadOnly from './QuestionnaireReadOnly';
 import { getUserQuestionnaireResults, saveQuestionnaireProgress } from '../api/questionnaireService';
 import { encodeObjectForFirebase, decodeObjectFromFirebase, decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
+import { calculateKPIs } from '../utils/kpiCalculator';
+import { saveKPIs } from '../api/questionnaireService';
 
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
@@ -258,7 +260,7 @@ const handleEdit = (editInfo) => {
   };
 
   /**
-   * Sauvegarder automatiquement la progression
+   * Sauvegarder automatiquement la progression avec KPIs
    */
   const saveProgress = async (updatedAnswers) => {
     if (!currentUser || !currentUser.matricule) {
@@ -276,15 +278,15 @@ const handleEdit = (editInfo) => {
       // Encoder les clés pour Firebase
       const encoded = encodeObjectForFirebase(normalized);
 
-      console.log('📦 Données normalisées:', normalized);
-      console.log('🔐 Données encodées pour Firebase:', encoded);
-
       await saveQuestionnaireProgress(currentUser.matricule, encoded);
 
-      console.log('✅ Progression sauvegardée automatiquement');
+      // Calculer et sauvegarder les KPIs
+      const kpis = calculateKPIs(currentUser, normalized);
+      await saveKPIs(currentUser.matricule, kpis);
+
+      console.log('✅ Progression et KPIs sauvegardés automatiquement');
     } catch (error) {
       console.error('❌ Erreur lors de la sauvegarde automatique:', error);
-      // Ne pas bloquer l'utilisateur en cas d'erreur
     } finally {
       setIsSaving(false);
     }

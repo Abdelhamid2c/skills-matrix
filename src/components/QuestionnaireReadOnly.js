@@ -9,11 +9,21 @@ import {
   getScoreColor as getScoreColorFromScale
 } from '../assets/questions';
 import { decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
+import { saveKPIs } from '../api/questionnaireService';
+
+
+
+
+
+// Sauvegarder automatiquement les KPIs au chargement
+
 
 const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit }) => {
   const { results, submittedAt, lastSaved, isComplete } = questionnaireData;
   const [expandedCategories, setExpandedCategories] = useState({});
   console.log('📋 Questionnaire Data:', questionnaireData.results);
+
+
 
   const transformResultsToArray = () => {
   const all_responses = [];
@@ -237,7 +247,6 @@ console.log('📏 Longueur:', all_responses.length);
 
   // Utiliser la vérification locale plutôt que isComplete du backend
   const actuallyComplete = stats.isReallyComplete;
-
   // Rendu récursif des catégories et compétences
   const renderCategory = (categoryName, categoryData, level = 0, parentPath = []) => {
     const decodedCategoryName = decodeFirebaseKey(categoryName);
@@ -365,6 +374,8 @@ console.log('📏 Longueur:', all_responses.length);
       </div>
     );
   };
+
+
 
   /**
    * Tableaux de pondération pour chaque fonction (1 = tâche accountable, 0 = non accountable)
@@ -633,6 +644,27 @@ const ACCOUNTABILITY_ARRAYS = {
     return 'text-red-700';
   };
 
+
+    // Fonction pour sauvegarder les KPIs dans Firebase
+  const saveKPIsToDatabase = React.useCallback(async () => {
+    if (!currentUser?.matricule) {
+      console.error('❌ Matricule non disponible');
+      return;
+    }
+
+    try {
+      await saveKPIs(currentUser.matricule, kpis);
+      console.log('✅ KPIs sauvegardés avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde des KPIs:', error);
+    }
+  }, [currentUser?.matricule, kpis]);
+
+  React.useEffect(() => {
+  if (kpis) {
+    saveKPIsToDatabase();
+  }
+}, [actuallyComplete, kpis, saveKPIsToDatabase]);
   /**
    * Obtenir la couleur de fond selon le pourcentage
    */
