@@ -12,10 +12,10 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     matricule: '',
     firstName: '',
     lastName: '',
+    plant: '',
     function: '',
     customFunction: '',
-    projectFamily: [], // Changé en tableau pour choix multiple
-    customProjectFamily: '',
+    projectFamily: '', // Changé de tableau à string
     diploma: '',
     customDiploma: '',
     experience: '',
@@ -26,6 +26,15 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
+
+  const plantOptions = [
+    { value: '', label: 'Sélectionner un site' },
+    { value: 'YMM', label: 'Yazaki Morocco Meknes (YMM)' },
+    { value: 'YMOK', label: 'Yazaki Morocco Kenitra (YMOK)' },
+    { value: 'YMO', label: 'Yazaki Morocco (YMO)' },
+    { value: 'YTU', label: 'Yazaki Tunisie (YTU)' },
+    { value: 'YEU', label: 'Yazaki Egypt (YEU)' },
+  ];
 
   const functionOptions = [
   { value: '', label: 'Sélectionner une fonction' },
@@ -39,16 +48,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   { value: 'Autocad', label: 'Autocad' },
   { value: 'Autre', label: 'Autre' },
 ];
-
-  const projectFamilyOptions = [
-    { value: 'XCB', label: 'XCB' },
-    { value: 'XHN', label: 'XHN' },
-    { value: 'DZ110', label: 'DZ110' },
-    { value: 'Toyota', label: 'Toyota' },
-    { value: 'Nissan', label: 'Nissan' },
-    { value: 'All', label: 'All' },
-    { value: 'Autre', label: 'Autre' },
-  ];
 
   const diplomaOptions = [
     { value: '', label: 'Sélectionner un diplôme' },
@@ -83,100 +82,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     }
   };
 
-  // Nouvelle fonction pour gérer les checkboxes
-  // const handleProjectChange = (projectValue) => {
-  //   setFormData(prev => {
-  //     let newProjects = [...prev.projectFamily];
-
-  //     // Si "All" est sélectionné, désélectionner tout le reste
-  //     if (projectValue === 'All') {
-  //       newProjects = newProjects.includes('All') ? [] : ['All','xcb'];
-  //     } else {
-  //       // Retirer "All" si on sélectionne autre chose
-  //       newProjects = newProjects.filter(p => p !== 'All');
-
-  //       if (newProjects.includes(projectValue)) {
-  //         // Désélectionner si déjà sélectionné
-  //         newProjects = newProjects.filter(p => p !== projectValue);
-  //       } else {
-  //         // Ajouter à la sélection
-  //         newProjects.push(projectValue);
-  //       }
-  //     }
-
-  //     return {
-  //       ...prev,
-  //       projectFamily: newProjects
-  //     };
-  //   });
-
-  //   // Effacer l'erreur s'il y en avait une
-  //   if (errors.projectFamily) {
-  //     setErrors(prev => ({
-  //       ...prev,
-  //       projectFamily: ''
-  //     }));
-  //   }
-  // };
-
-  const handleProjectChange = (projectValue) => {
-  setFormData(prev => {
-    let newProjects = [...prev.projectFamily];
-
-    // Si "All" est sélectionné
-    if (projectValue === 'All') {
-      if (newProjects.includes('All')) {
-        // Si "All" était déjà coché, tout décocher
-        newProjects = [];
-      } else {
-        // Si on coche "All", sélectionner tous les projets (sauf "Autre")
-        newProjects = projectFamilyOptions
-          .filter(option => option.value !== 'Autre')
-          .map(option => option.value);
-      }
-    } else {
-      // Si on clique sur un autre projet
-      if (newProjects.includes(projectValue)) {
-        // Désélectionner le projet
-        newProjects = newProjects.filter(p => p !== projectValue);
-        // Si c'était un projet normal, retirer aussi "All"
-        newProjects = newProjects.filter(p => p !== 'All');
-      } else {
-        // Ajouter le projet
-        newProjects.push(projectValue);
-
-        // Vérifier si tous les projets (sauf "Autre") sont maintenant sélectionnés
-        const allProjectsExceptAutre = projectFamilyOptions
-          .filter(option => option.value !== 'Autre')
-          .map(option => option.value);
-
-        const hasAllProjects = allProjectsExceptAutre.every(project =>
-          newProjects.includes(project)
-        );
-
-        // Si tous les projets sont sélectionnés, on peut cocher "All" automatiquement
-        if (hasAllProjects && !newProjects.includes('All')) {
-          // Optionnel: décommenter pour auto-cocher "All"
-          // newProjects.push('All');
-        }
-      }
-    }
-
-    return {
-      ...prev,
-      projectFamily: newProjects
-    };
-  });
-
-  // Effacer l'erreur s'il y en avait une
-  if (errors.projectFamily) {
-    setErrors(prev => ({
-      ...prev,
-      projectFamily: ''
-    }));
-  }
-};
-
   const validateForm = () => {
     const newErrors = {};
 
@@ -192,17 +97,19 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       newErrors.lastName = 'Le nom doit contenir au moins 2 caractères';
     }
 
+    if (!formData.plant) {
+      newErrors.plant = 'Le site est requis';
+    }
+
     if (!formData.function) {
       newErrors.function = 'La fonction est requise';
     } else if (formData.function === 'Autre' && !formData.customFunction.trim()) {
       newErrors.customFunction = 'Veuillez préciser la fonction';
     }
 
-    // Validation pour choix multiple
-    if (!formData.projectFamily || formData.projectFamily.length === 0) {
-      newErrors.projectFamily = 'Sélectionnez au moins un projet';
-    } else if (formData.projectFamily.includes('Autre') && !formData.customProjectFamily.trim()) {
-      newErrors.customProjectFamily = 'Veuillez préciser le projet/famille';
+    // Validation simplifiée pour projectFamily
+    if (!formData.projectFamily.trim()) {
+      newErrors.projectFamily = 'Le projet/famille est requis';
     }
 
     if (!formData.diploma) {
@@ -233,175 +140,73 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   console.log('═══════════════════════════════════════════════════════');
-  //   console.log('🎯 BOUTON "ENREGISTRER LE COLLABORATEUR" CLIQUÉ');
-  //   console.log('═══════════════════════════════════════════════════════');
-
-  //   if (!validateForm()) {
-  //     console.log('❌ Validation échouée');
-  //     return;
-  //   }
-
-  //   setIsSubmitting(true);
-
-  //   try {
-  //     // Construire la chaîne de projets
-  //     let projectFamilyValue;
-  //     if (formData.projectFamily.includes('Autre')) {
-  //       const otherProjects = formData.projectFamily.filter(p => p !== 'Autre');
-  //       projectFamilyValue = otherProjects.length > 0
-  //         ? [...otherProjects, formData.customProjectFamily].join(', ')
-  //         : formData.customProjectFamily;
-  //     } else {
-  //       projectFamilyValue = formData.projectFamily.join(', ');
-  //     }
-
-  //     const collaboratorData = {
-  //       matricule: formData.matricule.toUpperCase(),
-  //       firstName: formData.firstName.trim(),
-  //       lastName: formData.lastName.trim(),
-  //       function: formData.function === 'Autre' ? formData.customFunction : formData.function,
-  //       projectFamily: projectFamilyValue,
-  //       diploma: formData.diploma === 'Autre' ? formData.customDiploma : formData.diploma,
-  //       experience: parseFloat(formData.experience),
-  //       yazakiSeniority: parseFloat(formData.yazakiSeniority),
-  //     };
-
-  //     console.log('📤 Création du collaborateur dans users...');
-  //     console.log('📦 Données:', collaboratorData);
-
-  //     const response = await createCollaborator(collaboratorData);
-
-  //     console.log('✅ Collaborateur créé avec succès!');
-  //     console.log('📦 Réponse:', response);
-
-  //     if (response.success) {
-  //       setSubmittedData(collaboratorData);
-  //       setIsSubmitted(true);
-
-  //       setTimeout(() => {
-  //         setFormData({
-  //           matricule: '',
-  //           firstName: '',
-  //           lastName: '',
-  //           function: '',
-  //           customFunction: '',
-  //           projectFamily: [],
-  //           customProjectFamily: '',
-  //           diploma: '',
-  //           customDiploma: '',
-  //           experience: '',
-  //           yazakiSeniority: '',
-  //         });
-  //         setIsSubmitted(false);
-  //         setSubmittedData(null);
-  //       }, 3000);
-  //     }
-  //   } catch (error) {
-  //     console.error('❌ Erreur:', error);
-  //     setErrors({
-  //       submit: error.message || 'Une erreur est survenue lors de la création du collaborateur'
-  //     });
-  //   } finally {
-  //     setIsSubmitting(false);
-  //     console.log('═══════════════════════════════════════════════════════');
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  console.log('═══════════════════════════════════════════════════════');
-  console.log('🎯 BOUTON "ENREGISTRER LE COLLABORATEUR" CLIQUÉ');
-  console.log('═══════════════════════════════════════════════════════');
-
-  if (!validateForm()) {
-    console.log('❌ Validation échouée');
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    // Construire la chaîne de projets
-    let projectFamilyValue;
-
-    // Si "All" est sélectionné, envoyer tous les projets
-    if (formData.projectFamily.includes('All')) {
-      const allProjects = projectFamilyOptions
-        .filter(option => option.value !== 'Autre' && option.value !== 'All')
-        .map(option => option.value);
-
-      if (formData.projectFamily.includes('Autre') && formData.customProjectFamily.trim()) {
-        projectFamilyValue = [...allProjects, formData.customProjectFamily].join(', ');
-      } else {
-        projectFamilyValue = allProjects.join(', ');
-      }
-    } else if (formData.projectFamily.includes('Autre')) {
-      // Si "Autre" est sélectionné (sans "All")
-      const otherProjects = formData.projectFamily.filter(p => p !== 'Autre');
-      projectFamilyValue = otherProjects.length > 0
-        ? [...otherProjects, formData.customProjectFamily].join(', ')
-        : formData.customProjectFamily;
-    } else {
-      // Cas normal sans "All" ni "Autre"
-      projectFamilyValue = formData.projectFamily.join(', ');
-    }
-
-    const collaboratorData = {
-      matricule: formData.matricule.toUpperCase(),
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      function: formData.function === 'Autre' ? formData.customFunction : formData.function,
-      projectFamily: projectFamilyValue,
-      diploma: formData.diploma === 'Autre' ? formData.customDiploma : formData.diploma,
-      experience: parseFloat(formData.experience),
-      yazakiSeniority: parseFloat(formData.yazakiSeniority),
-    };
-
-    console.log('📤 Création du collaborateur dans users...');
-    console.log('📦 Données:', collaboratorData);
-
-    const response = await createCollaborator(collaboratorData);
-
-    console.log('✅ Collaborateur créé avec succès!');
-    console.log('📦 Réponse:', response);
-
-    if (response.success) {
-      setSubmittedData(collaboratorData);
-      setIsSubmitted(true);
-
-      setTimeout(() => {
-        setFormData({
-          matricule: '',
-          firstName: '',
-          lastName: '',
-          function: '',
-          customFunction: '',
-          projectFamily: [],
-          customProjectFamily: '',
-          diploma: '',
-          customDiploma: '',
-          experience: '',
-          yazakiSeniority: '',
-        });
-        setIsSubmitted(false);
-        setSubmittedData(null);
-      }, 3000);
-    }
-  } catch (error) {
-    console.error('❌ Erreur:', error);
-    setErrors({
-      submit: error.message || 'Une erreur est survenue lors de la création du collaborateur'
-    });
-  } finally {
-    setIsSubmitting(false);
     console.log('═══════════════════════════════════════════════════════');
-  }
-};
+    console.log('🎯 BOUTON "ENREGISTRER LE COLLABORATEUR" CLIQUÉ');
+    console.log('═══════════════════════════════════════════════════════');
+
+    if (!validateForm()) {
+      console.log('❌ Validation échouée');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const collaboratorData = {
+        matricule: formData.matricule.toUpperCase(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        plant: formData.plant,
+        function: formData.function === 'Autre' ? formData.customFunction : formData.function,
+        projectFamily: formData.projectFamily.trim(), // Directement la valeur du champ
+        diploma: formData.diploma === 'Autre' ? formData.customDiploma : formData.diploma,
+        experience: parseFloat(formData.experience),
+        yazakiSeniority: parseFloat(formData.yazakiSeniority),
+      };
+
+      console.log('📤 Création du collaborateur dans users...');
+      console.log('📦 Données:', collaboratorData);
+
+      const response = await createCollaborator(collaboratorData);
+
+      console.log('✅ Collaborateur créé avec succès!');
+      console.log('📦 Réponse:', response);
+
+      if (response.success) {
+        setSubmittedData(collaboratorData);
+        setIsSubmitted(true);
+
+        setTimeout(() => {
+          setFormData({
+            matricule: '',
+            firstName: '',
+            lastName: '',
+            plant: '',
+            function: '',
+            customFunction: '',
+            projectFamily: '', // Reset string vide
+            diploma: '',
+            customDiploma: '',
+            experience: '',
+            yazakiSeniority: '',
+          });
+          setIsSubmitted(false);
+          setSubmittedData(null);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('❌ Erreur:', error);
+      setErrors({
+        submit: error.message || 'Une erreur est survenue lors de la création du collaborateur'
+      });
+    } finally {
+      setIsSubmitting(false);
+      console.log('═══════════════════════════════════════════════════════');
+    }
+  };
 
   if (isSubmitted && submittedData) {
     return (
@@ -519,6 +324,18 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 error={errors.lastName}
                 required
               />
+
+              <div className="md:col-span-2">
+                <FormSelect
+                  label="Site / Plant"
+                  name="plant"
+                  value={formData.plant}
+                  onChange={handleChange}
+                  options={plantOptions}
+                  error={errors.plant}
+                  required
+                />
+              </div>
             </div>
           </div>
 
@@ -557,76 +374,22 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 />
               )}
 
-              {/* Projet / Famille - Liste avec Checkboxes style macOS */}
-              <div className={`${formData.function === 'Autre' ? '' : 'md:col-start-1'} md:col-span-2`}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Projet / Famille <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
-                  <div className="max-h-64 overflow-y-auto">
-                    {projectFamilyOptions.map((option, index) => (
-                      <label
-                        key={option.value}
-                        className={`flex items-center px-4 py-3 cursor-pointer transition-colors duration-150 ${
-                          formData.projectFamily.includes(option.value)
-                            ? 'bg-blue-500 text-white'
-                            : 'hover:bg-gray-50 text-gray-900'
-                        } ${index !== projectFamilyOptions.length - 1 ? 'border-b border-gray-200' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={formData.projectFamily.includes(option.value)}
-                          onChange={() => handleProjectChange(option.value)}
-                          className={`h-4 w-4 rounded border-2 mr-3 cursor-pointer transition-all ${
-                            formData.projectFamily.includes(option.value)
-                              ? 'bg-white border-white accent-blue-500'
-                              : 'border-gray-400 bg-white'
-                          }`}
-                        />
-                        <span className="flex-1 font-medium select-none">
-                          {option.label}
-                        </span>
-                        {formData.projectFamily.includes(option.value) && (
-                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {formData.projectFamily.length > 0 && (
-                  <p className="mt-2 text-sm text-gray-600 flex items-center">
-                    <svg className="w-4 h-4 mr-1 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <strong>{formData.projectFamily.length}</strong>&nbsp;sélectionné{formData.projectFamily.length > 1 ? 's' : ''}: {formData.projectFamily.join(', ')}
-                  </p>
-                )}
-                {errors.projectFamily && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {errors.projectFamily}
-                  </p>
-                )}
+              {/* Projet / Famille - Simple champ texte */}
+              <div className={formData.function === 'Autre' ? 'md:col-span-2' : ''}>
+                <FormInput
+                  label="Projet / Famille"
+                  name="projectFamily"
+                  type="text"
+                  value={formData.projectFamily}
+                  onChange={handleChange}
+                  placeholder="Ex: XCB, XHN, Toyota..."
+                  error={errors.projectFamily}
+                  required
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  💡 Séparez par des virgules si plusieurs projets
+                </p>
               </div>
-
-              {formData.projectFamily.includes('Autre') && (
-                <div className="md:col-span-2">
-                  <FormInput
-                    label="Précisez le projet/famille"
-                    name="customProjectFamily"
-                    type="text"
-                    value={formData.customProjectFamily}
-                    onChange={handleChange}
-                    placeholder="Entrez le projet/famille"
-                    error={errors.customProjectFamily}
-                    required
-                  />
-                </div>
-              )}
             </div>
           </div>
 
@@ -711,7 +474,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
               <p className="text-red-800 flex items-center">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-13a1 1 0 112 0v6a1 1 0 11-2 0V5z" clipRule="evenodd" />
                 </svg>
                 {errors.submit}
               </p>

@@ -11,6 +11,8 @@ import axios from './axios';
 export const createCollaborator = async (collaboratorData) => {
   try {
     const response = await axios.post('/collaborators', collaboratorData);
+    console.log('"""""""""""******""""""""""')
+    console.log('✅ Collaborateur créé:', response.data);
     return response.data;
   } catch (error) {
     throw error;

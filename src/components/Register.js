@@ -283,6 +283,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                 error={errors.lastName}
                 required
               />
+              SALAM
             </div>
           </div>
 
@@ -307,6 +308,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                   required
                 />
               </div>
+
 
               {formData.function === 'Autre' && (
                 <FormInput
