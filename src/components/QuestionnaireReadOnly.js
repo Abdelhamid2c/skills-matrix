@@ -1,5 +1,5 @@
 /**
- * QuestionnaireReadOnly - Affichage du questionnaire en mode lecture seule
+ * QuestionnaireReadOnly - Read-only display of the questionnaire
  */
 
 import React, { useState } from 'react';
@@ -123,19 +123,19 @@ console.log('📊 all_responses:', all_responses);
 console.log('📏 Longueur:', all_responses.length);
 
 
-  // Formater la date
+  // Format date in English
   const formatDate = (dateString) => {
-    if (!dateString) return 'Date inconnue';
+    if (!dateString) return 'Unknown date';
 
     try {
       const date = new Date(dateString);
 
       if (isNaN(date.getTime())) {
-        console.warn('Date invalide:', dateString);
-        return 'Date invalide';
+        console.warn('Invalid date:', dateString);
+        return 'Invalid date';
       }
 
-      return new Intl.DateTimeFormat('fr-FR', {
+      return new Intl.DateTimeFormat('en-GB', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -143,8 +143,8 @@ console.log('📏 Longueur:', all_responses.length);
         minute: '2-digit'
       }).format(date);
     } catch (error) {
-      console.error('Erreur formatage date:', error);
-      return 'Date invalide';
+      console.error('Date formatting error:', error);
+      return 'Invalid date';
     }
   };
 
@@ -383,12 +383,12 @@ console.log('📏 Longueur:', all_responses.length);
    */
 const ACCOUNTABILITY_ARRAYS = {
   'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'IE Responsible':  [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'IE Responsible':  [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
-  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'PE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
-  'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
   'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 };
@@ -678,54 +678,54 @@ const ACCOUNTABILITY_ARRAYS = {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="card">
-        {/* En-tête */}
+        {/* Header */}
         <div className="mb-8 border-b border-gray-200 pb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-3xl font-bold text-gray-900 flex items-center">
               <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-              Questionnaire de Compétences
+              Skills Questionnaire
             </h2>
             {currentUser && (
               <div className="text-right">
-                <p className="text-sm text-gray-600">Collaborateur</p>
+                <p className="text-sm text-gray-600">Employee</p>
                 <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
                 <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
               </div>
             )}
           </div>
 
-          {/* Badge de statut - Utiliser actuallyComplete */}
+          {/* Status badge */}
           <div className="flex items-center gap-3 mb-4">
             {actuallyComplete ? (
               <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-800 border-2 border-green-300">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
-                ✅ QUESTIONNAIRE COMPLÉTÉ
+                ✅ QUESTIONNAIRE COMPLETED
               </span>
             ) : (
               <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-orange-100 text-orange-800 border-2 border-orange-300">
                 <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                ⚠️ QUESTIONNAIRE INCOMPLET
+                ⚠️ INCOMPLETE QUESTIONNAIRE
               </span>
             )}
 
             <span className="text-sm text-gray-600">
               {actuallyComplete ? (
                 <>
-                  <strong>Complété le :</strong> {formattedDate}
+                  <strong>Completed on:</strong> {formattedDate}
                 </>
               ) : (
                 <>
-                  <strong>Dernière sauvegarde :</strong> {formattedDate}
+                  <strong>Last saved:</strong> {formattedDate}
                 </>
               )}
             </span>
           </div>
 
-          {/* Statistiques avec alerte si incomplet */}
+          {/* Progress stats */}
           <div className={`border-l-4 rounded-lg p-4 ${
             actuallyComplete
               ? 'bg-green-50 border-green-500'
@@ -736,15 +736,15 @@ const ACCOUNTABILITY_ARRAYS = {
                 <p className={`text-sm font-semibold mb-1 ${
                   actuallyComplete ? 'text-green-900' : 'text-orange-900'
                 }`}>
-                  Progression
+                  Progress
                 </p>
                 <p className={`text-xs ${
                   actuallyComplete ? 'text-green-700' : 'text-orange-700'
                 }`}>
-                  {stats.answeredSkills} / {stats.totalSkills} compétences évaluées
+                  {stats.answeredSkills} / {stats.totalSkills} skills assessed
                   {stats.unansweredSkills > 0 && (
                     <span className="ml-2 text-red-600 font-bold">
-                      ({stats.unansweredSkills} non remplies)
+                      ({stats.unansweredSkills} unanswered)
                     </span>
                   )}
                 </p>
@@ -770,10 +770,10 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
         </div>
 
-        {/* Titre "Vos Compétences" */}
+        {/* Title "Your Skills" */}
         <h3 className="text-2xl font-bold text-gray-900 mb-6">Your Skills</h3>
 
-        {/* 7 Cartes KPIs */}
+        {/* 7 KPI Cards */}
         <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* 1. Capability Ratio Overall PP */}
           <div className={`${getKPIBgColor(kpis.capabilityRatioOverallPP)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
@@ -974,10 +974,10 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
 
           <p className="text-sm text-blue-700 mb-3">
-            {stats.answeredSkills} / {stats.totalSkills} compétences évaluées
+            {stats.answeredSkills} / {stats.totalSkills} skills assessed
             {stats.unansweredSkills > 0 && (
               <span className="ml-2 text-red-600 font-bold">
-                ({stats.unansweredSkills} non remplies)
+                ({stats.unansweredSkills} unanswered)
               </span>
             )}
           </p>
@@ -1013,7 +1013,7 @@ const ACCOUNTABILITY_ARRAYS = {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Retour à l'accueil
+                Back to home
               </button>
 
               <button
@@ -1024,7 +1024,7 @@ const ACCOUNTABILITY_ARRAYS = {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Compléter le questionnaire
+                Complete the questionnaire
               </button>
             </div>
           ) : (
@@ -1037,7 +1037,7 @@ const ACCOUNTABILITY_ARRAYS = {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Retour à l'accueil
+                Back to home
               </button>
             )
           )}
