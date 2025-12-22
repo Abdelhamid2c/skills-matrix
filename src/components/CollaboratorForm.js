@@ -1,5 +1,5 @@
 /**
- * CollaboratorForm - Création directe dans users
+ * CollaboratorForm - Direct creation in users
  */
 
 import React, { useState } from 'react';
@@ -15,7 +15,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     plant: '',
     function: '',
     customFunction: '',
-    projectFamily: '', // Changé de tableau à string
+    projectFamily: '',
     diploma: '',
     customDiploma: '',
     experience: '',
@@ -28,42 +28,41 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   const [submittedData, setSubmittedData] = useState(null);
 
   const plantOptions = [
-    { value: '', label: 'Sélectionner un site' },
-    { value: 'YMM', label: 'Yazaki Morocco Meknes (YMM)' },
-    { value: 'YMOK', label: 'Yazaki Morocco Kenitra (YMOK)' },
-    { value: 'YMO', label: 'Yazaki Morocco (YMO)' },
-    { value: 'YTU', label: 'Yazaki Tunisie (YTU)' },
-    { value: 'YEU', label: 'Yazaki Egypt (YEU)' },
+    { value: '', label: 'Select a plant' },
+    { value: 'YMM', label: 'Yazaki Morocco Meknes S.A. (YMM)' },
+    { value: 'YMOK', label: 'Yazaki Kenitra S.A. (YMOK)' },
+    { value: 'YMO', label: 'Yazaki Morocco S.A. (YMO)' },
+    { value: 'YTU', label: 'Yazaki Tunisia S.A.R.L (YTU)' },
+    { value: 'YEE', label: 'Yazaki EDS Egypt (YEE)' },
   ];
 
   const functionOptions = [
-  { value: '', label: 'Sélectionner une fonction' },
-  { value: 'PE Responsible', label: 'PE Responsible' },
-  { value: 'PE Supervisor', label: 'PE Supervisor' },
-  { value: 'IE Supervisor', label: 'IE Supervisor' },
-  { value: 'PE Technician', label: 'PE Technician' },
-  { value: 'IE Technician', label: 'IE Technician' },
-  { value: 'PFMEA', label: 'PFMEA' },
-  { value: 'SAP & Data Management', label: 'SAP & Data Management' },
-  { value: 'Autocad', label: 'Autocad' },
-  { value: 'Autre', label: 'Autre' },
-];
+    { value: '', label: 'Select a function' },
+    { value: 'PE Responsible', label: 'PE Responsible' },
+    { value: 'PE Supervisor', label: 'PE Supervisor' },
+    { value: 'IE Supervisor', label: 'IE Supervisor' },
+    { value: 'PE Technician', label: 'PE Technician' },
+    { value: 'IE Technician', label: 'IE Technician' },
+    { value: 'PFMEA', label: 'PFMEA' },
+    { value: 'SAP & Data Management', label: 'SAP & Data Management' },
+    { value: 'Autocad', label: 'Autocad' },
+    { value: 'Other', label: 'Other' },
+  ];
 
   const diplomaOptions = [
-    { value: '', label: 'Sélectionner un diplôme' },
+    { value: '', label: 'Select a diploma' },
     { value: 'Bac', label: 'Bac' },
     { value: 'TS (Bac+2)', label: 'TS (Bac+2)' },
     { value: 'License (Bac+3)', label: 'License (Bac+3)' },
     { value: 'Maîtrise (Bac+4)', label: 'Maîtrise (Bac+4)' },
     { value: 'Engineer (Bac+5)', label: 'Engineer (Bac+5)' },
     { value: 'Master (Bac+5)', label: 'Master (Bac+5)' },
-    { value: 'Autre', label: 'Autre' },
+    { value: 'Other', label: 'Other' },
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Pour les champs d'expérience, remplacer la virgule par un point
     let processedValue = value;
     if (name === 'experience' || name === 'yazakiSeniority') {
       processedValue = value.replace(',', '.');
@@ -86,53 +85,51 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     const newErrors = {};
 
     if (!formData.matricule.trim()) {
-      newErrors.matricule = 'Le matricule est requis';
+      newErrors.matricule = 'Matricule is required';
     }
 
     if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
-      newErrors.firstName = 'Le prénom doit contenir au moins 2 caractères';
+      newErrors.firstName = 'First name must be at least 2 characters';
     }
 
     if (!formData.lastName.trim() || formData.lastName.trim().length < 2) {
-      newErrors.lastName = 'Le nom doit contenir au moins 2 caractères';
+      newErrors.lastName = 'Last name must be at least 2 characters';
     }
 
     if (!formData.plant) {
-      newErrors.plant = 'Le site est requis';
+      newErrors.plant = 'Plant is required';
     }
 
     if (!formData.function) {
-      newErrors.function = 'La fonction est requise';
-    } else if (formData.function === 'Autre' && !formData.customFunction.trim()) {
-      newErrors.customFunction = 'Veuillez préciser la fonction';
+      newErrors.function = 'Function is required';
+    } else if (formData.function === 'Other' && !formData.customFunction.trim()) {
+      newErrors.customFunction = 'Please specify the function';
     }
 
-    // Validation simplifiée pour projectFamily
     if (!formData.projectFamily.trim()) {
-      newErrors.projectFamily = 'Le projet/famille est requis';
+      newErrors.projectFamily = 'Project/Family is required';
     }
 
     if (!formData.diploma) {
-      newErrors.diploma = 'Le diplôme est requis';
-    } else if (formData.diploma === 'Autre' && !formData.customDiploma.trim()) {
-      newErrors.customDiploma = 'Veuillez préciser le diplôme';
+      newErrors.diploma = 'Diploma is required';
+    } else if (formData.diploma === 'Other' && !formData.customDiploma.trim()) {
+      newErrors.customDiploma = 'Please specify the diploma';
     }
 
     if (!formData.experience || parseFloat(formData.experience) < 0) {
-      newErrors.experience = 'L\'expérience est requise';
+      newErrors.experience = 'Experience is required';
     }
 
     if (!formData.yazakiSeniority || parseFloat(formData.yazakiSeniority) < 0) {
-      newErrors.yazakiSeniority = 'L\'ancienneté Yazaki est requise';
+      newErrors.yazakiSeniority = 'Yazaki seniority is required';
     }
 
-    // Validation: Expérience Totale >= Ancienneté Yazaki
     if (formData.experience && formData.yazakiSeniority) {
       const totalExp = parseFloat(formData.experience);
       const yazakiExp = parseFloat(formData.yazakiSeniority);
 
       if (yazakiExp > totalExp) {
-        newErrors.yazakiSeniority = 'L\'ancienneté Yazaki ne peut pas dépasser l\'expérience totale';
+        newErrors.yazakiSeniority = 'Yazaki seniority cannot exceed total experience';
       }
     }
 
@@ -143,12 +140,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('═══════════════════════════════════════════════════════');
-    console.log('🎯 BOUTON "ENREGISTRER LE COLLABORATEUR" CLIQUÉ');
-    console.log('═══════════════════════════════════════════════════════');
-
     if (!validateForm()) {
-      console.log('❌ Validation échouée');
       return;
     }
 
@@ -160,20 +152,14 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         plant: formData.plant,
-        function: formData.function === 'Autre' ? formData.customFunction : formData.function,
-        projectFamily: formData.projectFamily.trim(), // Directement la valeur du champ
-        diploma: formData.diploma === 'Autre' ? formData.customDiploma : formData.diploma,
+        function: formData.function === 'Other' ? formData.customFunction : formData.function,
+        projectFamily: formData.projectFamily.trim(),
+        diploma: formData.diploma === 'Other' ? formData.customDiploma : formData.diploma,
         experience: parseFloat(formData.experience),
         yazakiSeniority: parseFloat(formData.yazakiSeniority),
       };
 
-      console.log('📤 Création du collaborateur dans users...');
-      console.log('📦 Données:', collaboratorData);
-
       const response = await createCollaborator(collaboratorData);
-
-      console.log('✅ Collaborateur créé avec succès!');
-      console.log('📦 Réponse:', response);
 
       if (response.success) {
         setSubmittedData(collaboratorData);
@@ -187,7 +173,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             plant: '',
             function: '',
             customFunction: '',
-            projectFamily: '', // Reset string vide
+            projectFamily: '',
             diploma: '',
             customDiploma: '',
             experience: '',
@@ -198,13 +184,11 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
         }, 3000);
       }
     } catch (error) {
-      console.error('❌ Erreur:', error);
       setErrors({
-        submit: error.message || 'Une erreur est survenue lors de la création du collaborateur'
+        submit: error.message || 'An error occurred while creating the collaborator'
       });
     } finally {
       setIsSubmitting(false);
-      console.log('═══════════════════════════════════════════════════════');
     }
   };
 
@@ -221,7 +205,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
           </div>
 
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Collaborateur enregistré !
+            Collaborator registered!
           </h2>
           <div className="mb-4 p-4 bg-yazaki-light-gray rounded-lg">
             <p className="text-sm text-gray-600 mb-1">Matricule</p>
@@ -232,7 +216,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
           </p>
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
-              🔑 Mot de passe: <strong>{submittedData.matricule}</strong>
+              🔑 Password: <strong>{submittedData.matricule}</strong>
             </p>
           </div>
 
@@ -242,7 +226,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
               onClick={onBack}
               className="mt-6 btn-secondary"
             >
-              Retour à l'accueil
+              Back to home
             </button>
           )
           }
@@ -263,18 +247,18 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Retour à l'accueil
+            Back to home
           </button>
         )}
 
         <div className="mb-8 border-b border-gray-200 pb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-            Nouveau employé
+            New Employee
           </h2>
           <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg ml-5">
             <p className="text-sm text-blue-800">
-              ℹ️ Le compte sera créé avec le matricule comme mot de passe
+              ℹ️ The account will be created with the matricule as password
             </p>
           </div>
         </div>
@@ -304,23 +288,23 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
               </div>
 
               <FormInput
-                label="Prénom"
+                label="First Name"
                 name="firstName"
                 type="text"
                 value={formData.firstName}
                 onChange={handleChange}
-                placeholder="Entrez le prénom"
+                placeholder="Enter first name"
                 error={errors.firstName}
                 required
               />
 
               <FormInput
-                label="Nom"
+                label="Last Name"
                 name="lastName"
                 type="text"
                 value={formData.lastName}
                 onChange={handleChange}
-                placeholder="Entrez le nom"
+                placeholder="Enter last name"
                 error={errors.lastName}
                 required
               />
@@ -339,19 +323,19 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             </div>
           </div>
 
-          {/* Section: Informations Professionnelles */}
+          {/* Section: Professional Information */}
           <div className="section-container">
             <h3 className="section-header">
               <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              Informations Professionnelles
+              Professional Information
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <FormSelect
-                  label="Fonction"
+                  label="Function"
                   name="function"
                   value={formData.function}
                   onChange={handleChange}
@@ -361,23 +345,22 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 />
               </div>
 
-              {formData.function === 'Autre' && (
+              {formData.function === 'Other' && (
                 <FormInput
-                  label="Précisez la fonction"
+                  label="Specify the function"
                   name="customFunction"
                   type="text"
                   value={formData.customFunction}
                   onChange={handleChange}
-                  placeholder="Entrez la fonction"
+                  placeholder="Enter the function"
                   error={errors.customFunction}
                   required
                 />
               )}
 
-              {/* Projet / Famille - Simple champ texte */}
-              <div className={formData.function === 'Autre' ? 'md:col-span-2' : ''}>
+              <div className={formData.function === 'Other' ? 'md:col-span-2' : ''}>
                 <FormInput
-                  label="Projet / Famille"
+                  label="Project / Family"
                   name="projectFamily"
                   type="text"
                   value={formData.projectFamily}
@@ -387,13 +370,13 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  💡 Séparez par des virgules si plusieurs projets
+                  💡 Separate with commas if several projects
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Section: Formation et Expérience */}
+          {/* Section: Education and Experience */}
           <div className="section-container">
             <h3 className="section-header">
               <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,13 +384,13 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
               </svg>
-              Formation et Expérience
+              Education and Experience
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <FormSelect
-                  label="Diplôme"
+                  label="Diploma"
                   name="diploma"
                   value={formData.diploma}
                   onChange={handleChange}
@@ -417,15 +400,15 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                 />
               </div>
 
-              {formData.diploma === 'Autre' && (
+              {formData.diploma === 'Other' && (
                 <div className="md:col-span-2">
                   <FormInput
-                    label="Précisez le diplôme"
+                    label="Specify the diploma"
                     name="customDiploma"
                     type="text"
                     value={formData.customDiploma}
                     onChange={handleChange}
-                    placeholder="Entrez le diplôme"
+                    placeholder="Enter the diploma"
                     error={errors.customDiploma}
                     required
                   />
@@ -434,37 +417,37 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
               <div>
                 <FormInput
-                  label="Expérience Totale (années)"
+                  label="Total Experience (years)"
                   name="experience"
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*[.,]?[0-9]*"
                   value={formData.experience}
                   onChange={handleChange}
-                  placeholder="Ex: 1.3 (1 an et 3 mois)"
+                  placeholder="Ex: 1.3 (1 year and 3 months)"
                   error={errors.experience}
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  💡 Ex: 2.5 = 2 ans et 5 mois
+                  💡 Ex: 2.5 = 2 years and 5 months
                 </p>
               </div>
 
               <div>
                 <FormInput
-                  label="Ancienneté Yazaki (années)"
+                  label="Yazaki Seniority (years)"
                   name="yazakiSeniority"
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*[.,]?[0-9]*"
                   value={formData.yazakiSeniority}
                   onChange={handleChange}
-                  placeholder="Ex: 0.5 ou 0,5 (6 mois)"
+                  placeholder="Ex: 0.5 or 0,5 (6 months)"
                   error={errors.yazakiSeniority}
                   required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  ⚠️ Doit être ≤ à l'expérience totale
+                  ⚠️ Must be ≤ to total experience
                 </p>
               </div>
             </div>
@@ -492,14 +475,14 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Enregistrement en cours...
+                Saving...
               </>
             ) : (
               <>
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Enregistrer le Collaborateur
+                Save Collaborator
               </>
             )}
           </button>

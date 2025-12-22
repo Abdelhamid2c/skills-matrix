@@ -1,5 +1,5 @@
 /**
- * Welcome - Page d'accueil de l'application Skills Matrix
+ * Welcome - Home page of the Skills Matrix application
  */
 
 import React from 'react';
@@ -8,7 +8,7 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
 
   const handleGetStartedClick = (e) => {
     e.preventDefault();
-    console.log('Bouton Commencer cliqué - Redirection vers Login');
+    console.log('Start button clicked - Redirecting to Login');
     console.log('═══════════════════════════════════════════════════════');
 
     if (onNavigateToLogin) {
@@ -21,33 +21,33 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4">
       <div className="max-w-6xl w-full">
-        {/* Contenu principal */}
+        {/* Main content */}
         <div className="text-center mb-12 animate-fade-in">
-          {/* Titre principal */}
+          {/* Main title */}
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Bienvenue sur
+            Welcome to
             <span className="block text-yazaki-red mt-2">Skills Matrix</span>
           </h1>
 
-          {/* Sous-titre */}
+          {/* Subtitle */}
           <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Plateforme de gestion et d'évaluation des compétences pour Yazaki Morocco Meknes
+            Skills management and assessment platform for Yazaki Morocco Meknes
           </p>
 
-          {/* Bouton CTA */}
+          {/* CTA Button */}
           <button
             type="button"
             onClick={handleGetStartedClick}
             className="inline-flex items-center px-8 py-4 bg-yazaki-red text-white text-lg font-semibold rounded-lg hover:bg-yazaki-dark-red transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            Commencer
+            Start
             <svg className="w-6 h-6 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </button>
         </div>
 
-        {/* Fonctionnalités */}
+        {/* Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
           {/* Feature 1 */}
           <div className="bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300 animate-slide-in">
@@ -57,10 +57,10 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
-              Gestion des Profils
+              Profile Management
             </h3>
             <p className="text-gray-600">
-              Créez et gérez les profils de vos collaborateurs avec toutes leurs informations professionnelles.
+              Create and manage your collaborators' profiles with all their professional information.
             </p>
           </div>
 
@@ -72,10 +72,10 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
-              Évaluation des Compétences
+              Skills Assessment
             </h3>
             <p className="text-gray-600">
-              Évaluez et suivez l'évolution des compétences techniques de vos équipes en temps réel.
+              Assess and track the evolution of your teams' technical skills in real time.
             </p>
           </div>
 
@@ -87,10 +87,10 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3">
-              Rapports Détaillés
+              Detailed Reports
             </h3>
             <p className="text-gray-600">
-              Générez des rapports complets et visualisez les statistiques de compétences de votre organisation.
+              Generate comprehensive reports and view your organization's skills statistics.
             </p>
           </div>
         </div>
@@ -100,15 +100,15 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
               <div className="text-5xl font-bold mb-2">500+</div>
-              <div className="text-lg opacity-90">Collaborateurs</div>
+              <div className="text-lg opacity-90">Collaborators</div>
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
               <div className="text-5xl font-bold mb-2">50+</div>
-              <div className="text-lg opacity-90">Compétences Évaluées</div>
+              <div className="text-lg opacity-90">Skills Assessed</div>
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
               <div className="text-5xl font-bold mb-2">15+</div>
-              <div className="text-lg opacity-90">Départements</div>
+              <div className="text-lg opacity-90">Departments</div>
             </div>
           </div>
         </div>

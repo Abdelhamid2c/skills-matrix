@@ -1,5 +1,5 @@
 /**
- * Login - Page de connexion
+ * Login - Login page
  */
 
 import React, { useState } from 'react';
@@ -20,7 +20,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
       [name]: value
     }));
 
-    // Effacer l'erreur du champ modifié
+    // Clear the error for the changed field
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -28,7 +28,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
       }));
     }
 
-    // Effacer l'erreur générale si elle existe
+    // Clear the general error if it exists
     if (errors.general) {
       setErrors(prev => ({
         ...prev,
@@ -41,11 +41,11 @@ const Login = ({ onBack, onLoginSuccess }) => {
     const newErrors = {};
 
     if (!formData.matricule.trim()) {
-      newErrors.matricule = 'Le matricule est requis';
+      newErrors.matricule = 'Matricule is required';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Le mot de passe est requis';
+      newErrors.password = 'Password is required';
     }
 
     setErrors(newErrors);
@@ -56,47 +56,47 @@ const Login = ({ onBack, onLoginSuccess }) => {
     e.preventDefault();
 
     console.log('═══════════════════════════════════════════════════════');
-    console.log('🔐 TENTATIVE DE CONNEXION');
+    console.log('🔐 LOGIN ATTEMPT');
     console.log('═══════════════════════════════════════════════════════');
 
     if (!validateForm()) {
-      console.log('❌ Validation échouée');
+      console.log('❌ Validation failed');
       return;
     }
 
     setIsSubmitting(true);
-    setErrors({}); // Réinitialiser toutes les erreurs
+    setErrors({}); // Reset all errors
 
     try {
-      console.log('📤 Envoi des identifiants...');
+      console.log('📤 Sending credentials...');
       console.log('Matricule:', formData.matricule);
 
       const response = await login(formData.matricule, formData.password);
 
-      console.log('✅ Connexion réussie!');
-      console.log('📦 Réponse:', response);
+      console.log('✅ Login successful!');
+      console.log('📦 Response:', response);
 
       if (response.success && response.data) {
-        // Connexion réussie - passer à la page suivante
+        // Successful login - go to next page
         if (onLoginSuccess) {
           onLoginSuccess(response.data);
         }
       }
     } catch (error) {
-      console.error('❌ Erreur de connexion:', error);
+      console.error('❌ Login error:', error);
 
-      // Afficher le message d'erreur SANS retourner à la page d'accueil
+      // Show error message WITHOUT returning to home page
       setErrors({
-        general: error.message || 'Identifiants incorrects. Veuillez réessayer.'
+        general: error.message || 'Incorrect credentials. Please try again.'
       });
 
-      // Optionnel: Effacer le mot de passe pour permettre une nouvelle saisie
+      // Optionally: Clear the password for a new entry
       setFormData(prev => ({
         ...prev,
         password: ''
       }));
 
-      // NE PAS appeler onBack() ici !
+      // DO NOT call onBack() here!
     } finally {
       setIsSubmitting(false);
       console.log('═══════════════════════════════════════════════════════');
@@ -106,7 +106,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
   return (
     <div className="max-w-md mx-auto animate-slide-in">
       <div className="card">
-        {/* En-tête */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="mb-6">
             <div className="w-20 h-20 bg-gradient-to-br from-yazaki-red to-red-600 rounded-full mx-auto flex items-center justify-center shadow-lg">
@@ -115,11 +115,11 @@ const Login = ({ onBack, onLoginSuccess }) => {
               </svg>
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Connexion</h2>
-          <p className="text-gray-600">Accédez à votre espace Skills Matrix</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Login</h2>
+          <p className="text-gray-600">Access your Skills Matrix space</p>
         </div>
 
-        {/* Message d'erreur général */}
+        {/* General error message */}
         {errors.general && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-500 rounded-lg p-4 animate-shake">
             <div className="flex items-start">
@@ -127,14 +127,14 @@ const Login = ({ onBack, onLoginSuccess }) => {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <div>
-                <p className="font-semibold text-red-800 mb-1">Erreur de connexion</p>
+                <p className="font-semibold text-red-800 mb-1">Login error</p>
                 <p className="text-sm text-red-700">{errors.general}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Formulaire */}
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Matricule */}
           <div>
@@ -147,7 +147,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
               name="matricule"
               value={formData.matricule}
               onChange={handleChange}
-              placeholder="Entrez votre matricule"
+              placeholder="Enter your matricule"
               className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-yazaki-red focus:border-yazaki-red transition-all duration-200 ${
                 errors.matricule ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
@@ -163,10 +163,10 @@ const Login = ({ onBack, onLoginSuccess }) => {
             )}
           </div>
 
-          {/* Mot de passe */}
+          {/* Password */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Mot de passe <span className="text-red-500">*</span>
+              Password <span className="text-red-500">*</span>
             </label>
             <input
               type="password"
@@ -174,7 +174,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Entrez votre mot de passe"
+              placeholder="Enter your password"
               className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-yazaki-red focus:border-yazaki-red transition-all duration-200 ${
                 errors.password ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
@@ -190,20 +190,20 @@ const Login = ({ onBack, onLoginSuccess }) => {
             )}
           </div>
 
-          {/* Info mot de passe par défaut */}
+          {/* Default password info */}
           <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
             <div className="flex items-start">
               <svg className="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
               <p className="text-sm text-blue-800">
-                <strong>Première connexion ?</strong><br />
-                Le mot de passe par défaut est votre matricule.
+                <strong>First login?</strong><br />
+                The default password is your matricule.
               </p>
             </div>
           </div>
 
-          {/* Boutons */}
+          {/* Buttons */}
           <div className="space-y-3">
             <button
               type="submit"
@@ -220,14 +220,14 @@ const Login = ({ onBack, onLoginSuccess }) => {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Connexion en cours...
+                  Logging in...
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                   </svg>
-                  Se connecter
+                  Login
                 </>
               )}
             </button>
@@ -241,7 +241,7 @@ const Login = ({ onBack, onLoginSuccess }) => {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Retour
+                Back
               </button>
             )}
           </div>

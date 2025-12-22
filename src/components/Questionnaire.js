@@ -1,5 +1,5 @@
 /**
- * Questionnaire - Questionnaire de compétences multi-étapes
+ * Questionnaire - Multi-step Skills Questionnaire
  */
 
 import React, { useState, useEffect } from 'react';
@@ -500,19 +500,19 @@ const handleEdit = (editInfo) => {
     };
   };
 
-  // Afficher le loader pendant la vérification
+  // Loader while checking
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto animate-fade-in">
         <div className="card text-center py-16">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yazaki-red mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement du questionnaire...</p>
+          <p className="text-gray-600">Loading questionnaire...</p>
         </div>
       </div>
     );
   }
 
-  // Si le questionnaire existe déjà ET qu'on n'est pas en mode édition
+  // If questionnaire already exists AND not in edit mode
   if (existingQuestionnaire && !isEditMode && !showSummary && !showSkillModal) {
     return (
       <QuestionnaireReadOnly
@@ -524,7 +524,7 @@ const handleEdit = (editInfo) => {
     );
   }
 
-  // Si on affiche le résumé
+  // If showing summary
   if (showSummary) {
     return (
       <QuestionnaireSummary
@@ -542,19 +542,19 @@ const handleEdit = (editInfo) => {
   const totalSkills = currentStepData?.skills?.length || 0;
   const completedSteps = countCompletedSteps();
 
-  // Obtenir l'échelle appropriée pour l'étape actuelle
+  // Get the appropriate scale for the current step
   const currentScale = currentStepData ? getScaleForCategory(currentStepData.path) : scoreScale;
 
   return (
     <>
-      {/* Modal de modification d'une compétence */}
+      {/* Skill edit modal */}
       {showSkillModal && editingSkill && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  Modifier la compétence
+                  Edit Skill
                 </h3>
                 <button
                   onClick={handleCloseSkillModal}
@@ -571,17 +571,17 @@ const handleEdit = (editInfo) => {
             </div>
 
             <div className="p-6">
-              {/* Obtenir l'échelle pour cette compétence */}
+              {/* Get scale for this skill */}
               {(() => {
                 const skillScale = getScaleForCategory(editingSkill.categoryPath);
                 const isBehavioral = skillScale.length > 5;
 
                 return (
                   <>
-                    {/* Échelle d'évaluation */}
+                    {/* Evaluation scale */}
                     <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
                       <h4 className="font-semibold text-blue-900 mb-3">
-                        {isBehavioral ? 'Échelle d\'évaluation comportementale (0-10)' : 'Échelle d\'évaluation technique (0-4)'}
+                        {isBehavioral ? 'Behavioral evaluation scale (0-10)' : 'Technical evaluation scale (0-4)'}
                       </h4>
                       <div className={`grid grid-cols-1 ${isBehavioral ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} gap-2`}>
                         {skillScale.map((score) => (
@@ -592,13 +592,13 @@ const handleEdit = (editInfo) => {
                       </div>
                     </div>
 
-                    {/* Sélection du score */}
+                    {/* Score selection */}
                     <div className="space-y-3">
                       <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Sélectionnez votre niveau :
+                        Select your level:
                       </label>
                       {skillScale.map((scoreOption) => {
-                        // Obtenir le score actuel
+                        // Get current score
                         let currentScore = -1;
                         let current = answers;
                         for (const key of editingSkill.categoryPath) {
@@ -655,17 +655,17 @@ const handleEdit = (editInfo) => {
                 onClick={handleCloseSkillModal}
                 className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all duration-200"
               >
-                Annuler
+                Cancel
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Questionnaire normal */}
+      {/* Main questionnaire */}
       <div className="max-w-7xl mx-auto animate-fade-in">
         <div className="card">
-          {/* Badge Mode Édition si modification */}
+          {/* Edit mode badge */}
           {isEditMode && (
             <div className="mb-6 bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
               <div className="flex items-center justify-between">
@@ -674,9 +674,9 @@ const handleEdit = (editInfo) => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   <div>
-                    <p className="font-semibold text-orange-800">Mode Modification</p>
+                    <p className="font-semibold text-orange-800">Edit Mode</p>
                     <p className="text-sm text-orange-700">
-                      Vous pouvez modifier vos réponses précédentes
+                      You can modify your previous answers
                     </p>
                   </div>
                 </div>
@@ -687,44 +687,44 @@ const handleEdit = (editInfo) => {
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Annuler
+                  Cancel
                 </button>
               </div>
             </div>
           )}
 
-          {/* Indicateur de sauvegarde automatique */}
+          {/* Autosave indicator */}
           {isSaving && (
             <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-3 flex items-center">
               <svg className="animate-spin h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span className="text-sm font-medium text-blue-800">💾 Sauvegarde en cours...</span>
+              <span className="text-sm font-medium text-blue-800">💾 Saving...</span>
             </div>
           )}
 
-          {/* En-tête */}
+          {/* Header */}
           <div className="mb-8 border-b border-gray-200 pb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-gray-900 flex items-center">
                 <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-                Questionnaire de Compétences
+                Skills Questionnaire
               </h2>
               {currentUser && (
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Collaborateur</p>
+                  <p className="text-sm text-gray-600">Employee</p>
                   <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
                   <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
                 </div>
               )}
             </div>
 
-            {/* Barre de progression */}
+            {/* Progress bar */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-gray-700">
-                  Étape {currentStep + 1} sur {steps.length}
+                  Step {currentStep + 1} of {steps.length}
                 </span>
                 <span className="text-sm font-semibold text-yazaki-red">
                   {Math.round(((currentStep + 1) / steps.length) * 100)}%
@@ -738,29 +738,29 @@ const handleEdit = (editInfo) => {
               </div>
             </div>
 
-            {/* Info de sauvegarde automatique */}
+            {/* Autosave info */}
             <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-3 mt-4">
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
                 <p className="text-sm text-green-800">
-                  <strong>Sauvegarde automatique activée</strong> - Vos réponses sont sauvegardées à chaque étape
+                  <strong>Autosave enabled</strong> - Your answers are saved at each step
                 </p>
               </div>
             </div>
 
-            {/* Affichage de l'étape actuelle */}
+            {/* Current step display */}
             {currentStepData && (
               <>
-                {/* Titre de l'étape avec catégorie principale */}
+                {/* Step title with main category */}
                 <div className="mt-8 mb-6">
                   <div className="flex items-center mb-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-yazaki-red to-red-600 rounded-lg flex items-center justify-center mr-4 shadow-md">
                       <span className="text-white font-bold text-xl">{currentStep + 1}</span>
                     </div>
                     <div className="flex-1">
-                      {/* Afficher la catégorie principale si différente du titre */}
+                      {/* Show main category if different from title */}
                       {currentStepData.path.length > 1 && currentStepData.path[0] !== currentStepData.title && (
                         <p className="text-sm font-semibold text-yazaki-red uppercase tracking-wide mb-1">
                           {currentStepData.path[0]}
@@ -775,7 +775,7 @@ const handleEdit = (editInfo) => {
                     </div>
                   </div>
 
-                  {/* Breadcrumb du chemin complet */}
+                  {/* Breadcrumb */}
                   <div className="flex items-center text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-2 mb-3">
                     <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -796,7 +796,7 @@ const handleEdit = (editInfo) => {
                     </div>
                   </div>
 
-                  {/* Indicateur d'échelle utilisée */}
+                  {/* Scale indicator */}
                   <div className={`p-3 rounded-lg border-2 ${
                     currentScale.length > 5
                       ? 'bg-purple-50 border-purple-300'
@@ -812,14 +812,14 @@ const handleEdit = (editInfo) => {
                   </div>
                 </div>
 
-                {/* Échelle d'évaluation */}
+                {/* Evaluation scale */}
                 <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200">
                   <h4 className="font-bold text-blue-900 mb-4 flex items-center">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                       <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    {currentScale.length > 5 ? 'Échelle d\'évaluation comportementale' : 'Échelle d\'évaluation technique'}
+                    {currentScale.length > 5 ? 'Behavioral evaluation scale' : 'Technical evaluation scale'}
                   </h4>
                   <div className={`grid ${
                     currentScale.length > 5 ? 'grid-cols-2 sm:grid-cols-5 lg:grid-cols-11' : 'grid-cols-1 sm:grid-cols-5'
@@ -839,7 +839,7 @@ const handleEdit = (editInfo) => {
                   </div>
                 </div>
 
-                {/* Liste des compétences */}
+                {/* Skills list */}
                 <div className="space-y-4">
                   {currentStepData.skills.map((skillName, index) => (
                     <div
@@ -857,7 +857,7 @@ const handleEdit = (editInfo) => {
                         </div>
                       </div>
 
-                      {/* Boutons de sélection */}
+                      {/* Selection buttons */}
                       <div className={`grid ${
                         currentScale.length > 5 ? 'grid-cols-2 sm:grid-cols-5 lg:grid-cols-11' : 'grid-cols-2 sm:grid-cols-5'
                       } gap-2`}>
@@ -900,7 +900,7 @@ const handleEdit = (editInfo) => {
                   ))}
                 </div>
 
-                {/* Boutons de navigation */}
+                {/* Navigation buttons */}
                 <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
                   <button
                     type="button"
@@ -915,7 +915,7 @@ const handleEdit = (editInfo) => {
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                    Précédent
+                    Previous
                   </button>
 
                   {currentStep === steps.length - 1 ? (
@@ -924,7 +924,7 @@ const handleEdit = (editInfo) => {
                       onClick={handleGoToSummary}
                       className="px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center"
                     >
-                      Voir le Résumé
+                      View Summary
                       <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                       </svg>
@@ -946,11 +946,11 @@ const handleEdit = (editInfo) => {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
-                          Sauvegarde...
+                          Saving...
                         </>
                       ) : (
                         <>
-                          Suivant
+                          Next
                           <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                           </svg>
