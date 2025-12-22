@@ -709,7 +709,7 @@ const handleEdit = (editInfo) => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold text-gray-900 flex items-center">
                 <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-                Skills Questionnaire
+                Skills Assessment Questionnaire
               </h2>
               {currentUser && (
                 <div className="text-right">
