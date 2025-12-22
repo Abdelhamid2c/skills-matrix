@@ -1,5 +1,5 @@
 /**
- * QuestionnaireSummary - Page de résumé et confirmation du questionnaire
+ * QuestionnaireSummary - Questionnaire summary and confirmation page
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,42 +17,42 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
     averageScore: 0
   });
 
-  // Normaliser les résultats (remplacer les valeurs manquantes par -1)
+  // Normalize results (replace missing values with -1)
   useEffect(() => {
     const normalized = normalizeAnswers(skillsData, answers);
     setNormalizedResults(normalized);
 
-    // Calculer les statistiques
+    // Calculate statistics
     const calculatedStats = calculateStatistics(normalized);
     setStats(calculatedStats);
 
-    console.log('📊 Résultats normalisés:', normalized);
-    console.log('📈 Statistiques:', calculatedStats);
+    console.log('📊 Normalized results:', normalized);
+    console.log('📈 Statistics:', calculatedStats);
   }, [answers]);
 
   /**
-   * Normaliser les réponses - remplacer les valeurs manquantes par -1
+   * Normalize answers - replace missing values with -1
    */
   const normalizeAnswers = (structure, userAnswers) => {
     const normalized = {};
 
     const processCategory = (categoryName, categoryData, answerPath = []) => {
       if (Array.isArray(categoryData)) {
-        // C'est une liste de compétences
+        // It's a list of skills
         const categoryAnswers = {};
         categoryData.forEach(skillName => {
-          // Naviguer dans les réponses de l'utilisateur
+          // Navigate in user answers
           let currentAnswer = userAnswers;
           for (const key of [...answerPath, categoryName]) {
             currentAnswer = currentAnswer?.[key];
           }
 
-          // Définir la valeur (-1 si non répondu, sinon la valeur fournie)
+          // Set value (-1 if not answered, otherwise the provided value)
           const userValue = currentAnswer?.[skillName];
           categoryAnswers[skillName] = userValue !== undefined && userValue !== null ? userValue : -1;
         });
 
-        // Construire le chemin dans l'objet normalisé
+        // Build the path in the normalized object
         let current = normalized;
         for (let i = 0; i < answerPath.length; i++) {
           const key = answerPath[i];
@@ -64,7 +64,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
         current[categoryName] = categoryAnswers;
 
       } else if (typeof categoryData === 'object') {
-        // C'est un objet avec des sous-catégories
+        // It's an object with subcategories
         Object.entries(categoryData).forEach(([subCatName, subCatData]) => {
           processCategory(subCatName, subCatData, [...answerPath, categoryName]);
         });
@@ -79,7 +79,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   };
 
   /**
-   * Calculer les statistiques des résultats
+   * Calculate statistics from results
    */
   const calculateStatistics = (results) => {
     let total = 0;
@@ -90,7 +90,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
       Object.values(obj).forEach(value => {
         if (typeof value === 'number') {
           total++;
-          if (value >= 0) // Compter seulement les réponses valides (>= 0)
+          if (value >= 0)
             answered++;
           totalScore += value;
         } else if (typeof value === 'object') {
@@ -110,7 +110,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   };
 
   /**
-   * Obtenir la couleur du badge selon le score
+   * Get badge color by score
    */
   const getScoreBadgeColor = (score) => {
     if (score === -1) {
@@ -121,52 +121,52 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   };
 
   /**
-   * Obtenir le label du score
+   * Get score label
    */
   const getScoreLabel = (score) => {
     if (score === -1) {
-      return 'Non répondu';
+      return 'Not answered';
     }
     const scale = scoreScale.find(s => s.value === score);
-    return scale ? scale.label : 'Non évalué';
+    return scale ? scale.label : 'Not evaluated';
   };
 
   /**
-   * Soumettre les résultats au backend
+   * Submit results to backend
    */
   const handleSubmit = async () => {
     console.log('═══════════════════════════════════════════════════════');
-    console.log('🎯 BOUTON "CONFIRMER ET ENVOYER" CLIQUÉ');
+    console.log('🎯 "CONFIRM AND SAVE" BUTTON CLICKED');
     console.log('═══════════════════════════════════════════════════════');
 
     setIsSubmitting(true);
 
     try {
-      console.log('📤 Soumission du questionnaire pour:', currentUser.matricule);
+      console.log('📤 Submitting questionnaire for:', currentUser.matricule);
 
-      // Encoder les résultats avant envoi
+      // Encode results before sending
       const encodedResults = encodeObjectForFirebase(normalizedResults);
 
-      console.log('📦 Résultats normalisés:', normalizedResults);
-      console.log('🔐 Résultats encodés:', encodedResults);
+      console.log('📦 Normalized results:', normalizedResults);
+      console.log('🔐 Encoded results:', encodedResults);
 
       const response = await submitQuestionnaireResults(
         currentUser.matricule,
         encodedResults
       );
 
-      console.log('✅ Questionnaire soumis avec succès!');
-      console.log('📦 Réponse:', response);
+      console.log('✅ Questionnaire submitted successfully!');
+      console.log('📦 Response:', response);
 
       if (response.success) {
-        // Appeler onSuccess pour retourner vers QuestionnaireReadOnly
+        // Call onSuccess to return to QuestionnaireReadOnly
         if (onSuccess) {
           onSuccess(response);
         }
       }
     } catch (error) {
-      console.error('❌ Erreur lors de la soumission:', error);
-      alert('Erreur lors de la soumission du questionnaire. Veuillez réessayer.');
+      console.error('❌ Submission error:', error);
+      alert('Error submitting the questionnaire. Please try again.');
     } finally {
       setIsSubmitting(false);
       console.log('═══════════════════════════════════════════════════════');
@@ -174,11 +174,11 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   };
 
   /**
-   * Afficher une catégorie et ses compétences
+   * Render a category and its skills
    */
   const renderCategory = (categoryName, categoryData, level = 0) => {
     if (Array.isArray(categoryData)) {
-      return null; // Les tableaux sont gérés par renderSkills
+      return null; // Arrays are handled by renderSkills
     }
 
     return (
@@ -200,15 +200,15 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   };
 
   /**
-   * Afficher la liste des compétences d'une sous-catégorie
+   * Render the list of skills in a subcategory
    */
   const renderSkills = (categoryName, skills) => {
-    // Trouver les réponses correspondantes dans normalizedResults
+    // Find corresponding answers in normalizedResults
     let categoryAnswers = {};
     const searchInResults = (obj, targetCategory) => {
       for (const [key, value] of Object.entries(obj)) {
         if (key === targetCategory && typeof value === 'object' && !Array.isArray(value)) {
-          // Vérifier si c'est bien un objet de compétences (contient des nombres)
+          // Check if it's a skill object (contains numbers)
           const hasSkills = Object.values(value).some(v => typeof v === 'number');
           if (hasSkills) {
             categoryAnswers = value;
@@ -262,43 +262,43 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
       <div className="card">
-        {/* En-tête */}
+        {/* Header */}
         <div className="mb-8 border-b border-gray-200 pb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-3xl font-bold text-gray-900 flex items-center">
               <span className="w-2 h-8 bg-green-600 rounded-full mr-3"></span>
-              Résumé du Questionnaire
+              Questionnaire Summary
             </h2>
             {currentUser && (
               <div className="text-right">
-                <p className="text-sm text-gray-600">Collaborateur</p>
+                <p className="text-sm text-gray-600">Employee</p>
                 <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
                 <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
               </div>
             )}
           </div>
 
-          {/* Statistiques globales */}
+          {/* Global statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border-2 border-blue-200">
-              <p className="text-sm text-blue-700 font-semibold mb-1">Total Compétences</p>
+              <p className="text-sm text-blue-700 font-semibold mb-1">Total Skills</p>
               <p className="text-3xl font-bold text-blue-900">{stats.totalSkills}</p>
             </div>
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border-2 border-green-200">
-              <p className="text-sm text-green-700 font-semibold mb-1">Évaluées</p>
+              <p className="text-sm text-green-700 font-semibold mb-1">Assessed</p>
               <p className="text-3xl font-bold text-green-900">{stats.answeredSkills}</p>
             </div>
             <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border-2 border-yellow-200">
-              <p className="text-sm text-yellow-700 font-semibold mb-1">Non Évaluées</p>
+              <p className="text-sm text-yellow-700 font-semibold mb-1">Not Assessed</p>
               <p className="text-3xl font-bold text-yellow-900">{stats.unansweredSkills}</p>
             </div>
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-200">
-              <p className="text-sm text-purple-700 font-semibold mb-1">Moyenne</p>
+              <p className="text-sm text-purple-700 font-semibold mb-1">Average</p>
               <p className="text-3xl font-bold text-purple-900">{stats.averageScore}</p>
             </div>
           </div>
 
-          {/* Avertissement si des compétences ne sont pas évaluées */}
+          {/* Warning if some skills are not assessed */}
           {stats.unansweredSkills > 0 && (
             <div className="mt-4 bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
               <div className="flex items-center">
@@ -307,10 +307,10 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
                 </svg>
                 <div>
                   <p className="font-semibold text-red-800">
-                    ⚠️ {stats.unansweredSkills} compétence{stats.unansweredSkills > 1 ? 's' : ''} non évaluée{stats.unansweredSkills > 1 ? 's' : ''}
+                    ⚠️ {stats.unansweredSkills} skill{stats.unansweredSkills > 1 ? 's' : ''} not assessed
                   </p>
                   <p className="text-sm text-red-700">
-                    Ces compétences seront marquées comme "Non répondu" (-1) dans le questionnaire
+                    These skills will be marked as "Not answered" (-1) in the questionnaire
                   </p>
                 </div>
               </div>
@@ -318,13 +318,13 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
           )}
         </div>
 
-        {/* Légende des scores */}
+        {/* Score legend */}
         <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
           <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            Échelle d'évaluation
+            Evaluation scale
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
             {scoreScale.map((score) => (
@@ -335,13 +335,13 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
           </div>
         </div>
 
-        {/* Liste détaillée de toutes les compétences */}
+        {/* Detailed list of all skills */}
         <div className="mb-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
             <svg className="w-6 h-6 text-yazaki-red mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            Détail des Compétences
+            Skills Details
           </h3>
           <div className="space-y-6">
             {Object.entries(skillsData).map(([categoryName, categoryData]) => {
@@ -354,7 +354,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
           </div>
         </div>
 
-        {/* Boutons d'action */}
+        {/* Action buttons */}
         <div className="flex items-center justify-between pt-6 border-t border-gray-200">
           <button
             type="button"
@@ -365,7 +365,7 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
-            Retour au Questionnaire
+            Back to Questionnaire
           </button>
 
           <button
@@ -380,14 +380,14 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Envoi en cours...
+                Sending...
               </>
             ) : (
               <>
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
-                Confirmer et Sauvegarder
+                Confirm and Save
               </>
             )}
           </button>
