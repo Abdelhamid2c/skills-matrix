@@ -5,7 +5,7 @@
 import axios from 'axios';
 
 // URL de base de l'API
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const BASE_URL = process.env.REACT_APP_API_URL || 'https://skills-matrix-backend.onrender.com/api';
 
 // Créer une instance Axios
 const axiosInstance = axios.create({
