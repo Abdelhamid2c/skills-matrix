@@ -99,16 +99,16 @@ const Welcome = ({ onGetStarted, onNavigateToLogin }) => {
         <div className="mt-16 bg-gradient-to-r from-yazaki-red to-red-600 rounded-2xl shadow-2xl p-8 md:p-12 text-white">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
-              <div className="text-5xl font-bold mb-2">500+</div>
+              <div className="text-5xl font-bold mb-2">200+</div>
               <div className="text-lg opacity-90">Collaborators</div>
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.4s'}}>
-              <div className="text-5xl font-bold mb-2">50+</div>
+              <div className="text-5xl font-bold mb-2">100+</div>
               <div className="text-lg opacity-90">Skills Assessed</div>
             </div>
             <div className="animate-fade-in" style={{animationDelay: '0.5s'}}>
-              <div className="text-5xl font-bold mb-2">15+</div>
-              <div className="text-lg opacity-90">Departments</div>
+              <div className="text-5xl font-bold mb-2">5+</div>
+              <div className="text-lg opacity-90">Plants</div>
             </div>
           </div>
         </div>
