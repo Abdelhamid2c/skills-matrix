@@ -1138,9 +1138,10 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
         ...displayUser,
         image : displayUser.image
       })
-      }else if (displayUser.image.includes('assets')) {
+      }
+      else if (displayUser.image.includes('assets')) {
         const baseUrl = process.env.REACT_APP_API_URL
-        ? process.env.REACT_APP_API_URL : 'http://localhost:5000';
+        ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:5000';
         const newImageUrl = `${baseUrl}/${displayUser.image}`;
         setImageUrl(newImageUrl);
         setDisplayUser({
@@ -1148,7 +1149,9 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
         image : newImageUrl
       })
         console.log('🖼️ Image URL assets trouvée dans displayUser.image:...', imageUrl);
-      }else {
+      }
+      
+      else {
         const baseUrl = process.env.REACT_APP_API_URL
         ? process.env.REACT_APP_API_URL.replace('/api', '')
         : 'http://localhost:5000';
