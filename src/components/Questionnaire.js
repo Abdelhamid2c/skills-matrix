@@ -18,6 +18,7 @@ import { getUserQuestionnaireResults, saveQuestionnaireProgress } from '../api/q
 import { encodeObjectForFirebase, decodeObjectFromFirebase, decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
 import { calculateKPIs } from '../utils/kpiCalculator';
 import { saveKPIs } from '../api/questionnaireService';
+import UpdateCollaboratorForm from './UpdateCollaboratorForm';
 
 const Questionnaire = ({ currentUser, onBack }) => {
   // États
@@ -32,19 +33,23 @@ const Questionnaire = ({ currentUser, onBack }) => {
   const [originalAnswers, setOriginalAnswers] = useState({}); // Nouveau: sauvegarder les réponses originales
   const [editingSkill, setEditingSkill] = useState(null); // Nouvelle: compétence en cours de modification
   const [showSkillModal, setShowSkillModal] = useState(false); // Nouvelle: modal de modification
-
+  const [imageUrl, setImageUrl] = useState(null);
+  // Ajouter un état pour le mode édition du collaborateur
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [displayUser, setDisplayUser] = useState(currentUser);
+  const[editModeUser, setEditModeUser] = useState(null);
   // Vérifier si l'utilisateur a déjà rempli le questionnaire
   useEffect(() => {
     const checkExistingQuestionnaire = async () => {
-      if (!currentUser || !currentUser.matricule) {
+      if (!displayUser || !displayUser.matricule) {
         setIsLoading(false);
         return;
       }
 
       try {
-        console.log('🔍 Vérification du questionnaire existant pour:', currentUser.matricule);
+        console.log('🔍 Vérification du questionnaire existant pour:', displayUser.matricule);
 
-        const result = await getUserQuestionnaireResults(currentUser.matricule);
+        const result = await getUserQuestionnaireResults(displayUser.matricule);
 
         if (result && result.data) {
           console.log('✅ Questionnaire existant trouvé:', result.data);
@@ -62,6 +67,9 @@ const Questionnaire = ({ currentUser, onBack }) => {
             setAnswers(decodedData.results);
             setOriginalAnswers(JSON.parse(JSON.stringify(decodedData.results))); // Copie profonde
             console.log('📝 Mode édition activé - Réponses chargées');
+            console.log(editModeUser);
+
+            setDisplayUser(editModeUser);
           }
         } else {
           console.log('ℹ️ Aucun questionnaire existant');
@@ -74,7 +82,8 @@ const Questionnaire = ({ currentUser, onBack }) => {
     };
 
     checkExistingQuestionnaire();
-  }, [currentUser, isEditMode]);
+  }, [displayUser, isEditMode]);
+
 
   // Générer les étapes à partir du JSON
   useEffect(() => {
@@ -86,6 +95,21 @@ const Questionnaire = ({ currentUser, onBack }) => {
     });
   }, []);
 
+  useEffect(() => {
+    if (displayUser?.image) {
+      // console.log('🖼️ URL de l\'image sauvegardée:', currentUser.image);
+      // console.log('🌐 URL complète construite:', `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/${currentUser.image}`);
+      setImageUrl(`${process.env.REACT_APP_API_URL.replace('/api', '') || 'http://localhost:5000'}/${displayUser.image}`);
+    }
+    else {
+      setImageUrl(null);
+    }
+  }, [displayUser]);
+
+// const baseUrl = "http://localhost:5000/assets/";
+// const filename = imageUrl.substring(imageUrl.lastIndexOf("\\") + 1);
+// const fullUrl = baseUrl + filename;
+// console.log("Constructed URL:", fullUrl);
   // Gérer l'activation du mode édition
   const handleEnterEditMode = () => {
     console.log('✏️ Activation du mode édition');
@@ -109,6 +133,11 @@ const Questionnaire = ({ currentUser, onBack }) => {
     // Restaurer les réponses originales
     setAnswers(JSON.parse(JSON.stringify(originalAnswers)));
 
+
+    if (editModeUser) {
+    setDisplayUser(editModeUser);
+    console.log('🔄 Utilisateur restauré:', displayUser);
+  }
     // Quitter le mode édition
     setIsEditMode(false);
 
@@ -142,9 +171,16 @@ const Questionnaire = ({ currentUser, onBack }) => {
 
   //   window.scrollTo({ top: 0, behavior: 'smooth' });
   // };
-const handleEdit = (editInfo) => {
+  const handleEdit = (editInfo) => {
     console.log('✏️ Activation du mode modification:', editInfo);
+    setEditModeUser(editInfo.currentUser || null);
+    // Utiliser displayUser si fourni, sinon currentUser
+    const userToUse = editInfo?.displayUser || displayUser;
 
+    // Mettre à jour displayUser seulement si editMode est 'all'
+    if (editInfo.editMode === 'all') {
+      setDisplayUser(userToUse);
+    }
     // Sauvegarder les réponses actuelles comme backup
     if (existingQuestionnaire && existingQuestionnaire.results) {
       setOriginalAnswers(JSON.parse(JSON.stringify(existingQuestionnaire.results)));
@@ -209,7 +245,7 @@ const handleEdit = (editInfo) => {
       handleCloseSkillModal();
 
       // Recharger le questionnaire
-      const result = await getUserQuestionnaireResults(currentUser.matricule);
+      const result = await getUserQuestionnaireResults(displayUser.matricule);
       if (result && result.data) {
         const decodedData = {
           ...result.data,
@@ -263,7 +299,7 @@ const handleEdit = (editInfo) => {
    * Sauvegarder automatiquement la progression avec KPIs
    */
   const saveProgress = async (updatedAnswers) => {
-    if (!currentUser || !currentUser.matricule) {
+    if (!displayUser || !displayUser.matricule) {
       console.log('⚠️ Impossible de sauvegarder - utilisateur non connecté');
       return;
     }
@@ -278,12 +314,11 @@ const handleEdit = (editInfo) => {
       // Encoder les clés pour Firebase
       const encoded = encodeObjectForFirebase(normalized);
 
-      await saveQuestionnaireProgress(currentUser.matricule, encoded);
+      await saveQuestionnaireProgress(displayUser.matricule, encoded);
 
       // Calculer et sauvegarder les KPIs
-      const kpis = calculateKPIs(currentUser, normalized);
-      await saveKPIs(currentUser.matricule, kpis);
-
+      const kpis = calculateKPIs(displayUser, normalized);
+      await saveKPIs(displayUser.matricule, kpis);
       console.log('✅ Progression et KPIs sauvegardés automatiquement');
     } catch (error) {
       console.error('❌ Erreur lors de la sauvegarde automatique:', error);
@@ -291,6 +326,36 @@ const handleEdit = (editInfo) => {
       setIsSaving(false);
     }
   };
+
+  const handleUpdateSuccess = (updatedUserData) => {
+  console.log('***************** Données utilisateur mises à jour:', updatedUserData);
+
+  // Mettre à jour le currentUser avec les nouvelles données
+  const newCurrentUser = {
+    ...displayUser,
+    ...updatedUserData,
+    image: updatedUserData.image || displayUser.image,
+  };
+
+  // Mettre à jour l'image URL
+  if (updatedUserData.image) {
+    const baseUrl = process.env.REACT_APP_API_URL
+      ? process.env.REACT_APP_API_URL.replace('/api', '')
+      : 'http://localhost:5000';
+    const newImageUrl = `${baseUrl}/${updatedUserData.image}`;
+    setImageUrl(newImageUrl);
+  }
+
+  // Fermer le formulaire de mise à jour
+  setShowUpdateForm(false);
+
+  // Optionnel: Afficher un message de succès
+  console.log('✨ Profil mis à jour avec succès!');
+
+  // Forcer le re-render avec les nouvelles données
+  window.location.reload(); // Alternative plus simple si le parent ne peut pas être modifié
+};
+
 
   /**
    * Fonction pour normaliser les réponses (même logique que QuestionnaireSummary)
@@ -407,7 +472,7 @@ const handleEdit = (editInfo) => {
     try {
       console.log('🔄 Rechargement du questionnaire...');
 
-      const result = await getUserQuestionnaireResults(currentUser.matricule);
+      const result = await getUserQuestionnaireResults(displayUser.matricule);
 
       if (result && result.data) {
         console.log('✅ Questionnaire rechargé:', result.data);
@@ -516,7 +581,7 @@ const handleEdit = (editInfo) => {
   if (existingQuestionnaire && !isEditMode && !showSummary && !showSkillModal) {
     return (
       <QuestionnaireReadOnly
-        currentUser={currentUser}
+        currentUser={displayUser}
         questionnaireData={existingQuestionnaire}
         onBack={onBack}
         onEdit={handleEdit}
@@ -528,7 +593,7 @@ const handleEdit = (editInfo) => {
   if (showSummary) {
     return (
       <QuestionnaireSummary
-        currentUser={currentUser}
+        currentUser={displayUser}
         answers={answers}
         onBack={handleBackFromSummary}
         onSuccess={handleSuccess}
@@ -542,8 +607,21 @@ const handleEdit = (editInfo) => {
   const totalSkills = currentStepData?.skills?.length || 0;
   const completedSteps = countCompletedSteps();
 
+
   // Get the appropriate scale for the current step
   const currentScale = currentStepData ? getScaleForCategory(currentStepData.path) : scoreScale;
+
+
+  // Si on affiche le formulaire de mise à jour
+  if (showUpdateForm) {
+    return (
+      <UpdateCollaboratorForm
+        currentUser={displayUser}
+        onBack={() => setShowUpdateForm(false)}
+        onSuccess={handleUpdateSuccess}
+      />
+    );
+  }
 
   return (
     <>
@@ -581,7 +659,7 @@ const handleEdit = (editInfo) => {
                     {/* Evaluation scale */}
                     <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 rounded-lg p-4">
                       <h4 className="font-semibold text-blue-900 mb-3">
-                        {isBehavioral ? 'Behavioral evaluation scale (0-10)' : 'Technical evaluation scale (0-4)'}
+                        {isBehavioral ? 'Evaluation scale (0-10)' : 'Evaluation scale (0-4)'}
                       </h4>
                       <div className={`grid grid-cols-1 ${isBehavioral ? 'sm:grid-cols-6' : 'sm:grid-cols-5'} gap-2`}>
                         {skillScale.map((score) => (
@@ -619,13 +697,14 @@ const handleEdit = (editInfo) => {
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center">
-                                <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mr-3 ${
+                                <span className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mr-3  ${scoreOption.color}`}>
+                                {/* ${
                                   scoreOption.value <= 2 ? 'bg-red-500' :
                                   scoreOption.value <= 4 ? 'bg-orange-500' :
                                   scoreOption.value <= 6 ? 'bg-yellow-500' :
                                   scoreOption.value <= 8 ? 'bg-green-500' :
                                   scoreOption.value === 9 ? 'bg-blue-500' : 'bg-purple-500'
-                                }`}>
+                                }`}> */}
                                   {scoreOption.value}
                                 </span>
                                 <div>
@@ -711,11 +790,52 @@ const handleEdit = (editInfo) => {
                 <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
                 Skills Assessment Questionnaire
               </h2>
-              {currentUser && (
-                <div className="text-right">
-                  <p className="text-sm text-gray-600">Employee</p>
-                  <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
-                  <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
+              {displayUser && (
+                <div className="flex items-center gap-4">
+                  {/* Bouton de modification */}
+                  {/* <button
+                    type="button"
+                    onClick={() => setShowUpdateForm(true)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 group"
+                    title="Update employee information"
+                  >
+                    <svg className="w-6 h-6 text-gray-600 group-hover:text-yazaki-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button> */}
+
+                  <div className="flex items-center gap-6">
+                    {/* Informations textuelles */}
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-yazaki-red">{displayUser.matricule}</p>
+                      <p className="text-sm text-gray-600">{displayUser.firstName} {displayUser.lastName}</p>
+                    </div>
+
+                    {/* Photo de profil */
+                    console.log(".......... ", editModeUser)
+                    }
+                    <div className="flex-shrink-0">
+                      {displayUser.image ? (
+                        <img
+                          // src={`${process.env.REACT_APP_API_URL.replace('/api', '') || 'http://localhost:5000'}/${displayUser.image}`}
+                          src ={displayUser.image}
+                          alt={`${displayUser.firstName} ${displayUser.lastName}`}
+                          className="w-16 h-16 rounded-lg object-cover border-2 border-yazaki-red shadow-md hover:shadow-lg transition-shadow duration-200"
+                          style={{
+                            objectFit: 'cover',
+                            objectPosition: '50% 30%',
+                          }}
+                          title={`${displayUser.firstName} ${displayUser.lastName}`}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-yazaki-red to-red-600 flex items-center justify-center shadow-md">
+                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -819,7 +939,7 @@ const handleEdit = (editInfo) => {
                       <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                       <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    {currentScale.length > 5 ? 'Behavioral evaluation scale' : 'Technical evaluation scale'}
+                    {currentScale.length > 5 ? 'Evaluation scale' : 'Evaluation scale'}
                   </h4>
                   <div className={`grid ${
                     currentScale.length > 5 ? 'grid-cols-2 sm:grid-cols-5 lg:grid-cols-11' : 'grid-cols-1 sm:grid-cols-5'

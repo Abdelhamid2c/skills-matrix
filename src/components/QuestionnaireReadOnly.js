@@ -10,7 +10,8 @@ import {
 } from '../assets/questions';
 import { decodeFirebaseKey } from '../utils/firebaseKeyEncoder';
 import { saveKPIs } from '../api/questionnaireService';
-
+import CategoryDetailModal from './CategoryDetailModal';
+import UpdateCollaboratorForm from './UpdateCollaboratorForm';
 
 
 
@@ -21,9 +22,121 @@ import { saveKPIs } from '../api/questionnaireService';
 const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit }) => {
   const { results, submittedAt, lastSaved, isComplete } = questionnaireData;
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [displayUser, setDisplayUser] = useState(currentUser); // ✅ Ajouter cet état
+  let newImageUrl = null;
+
+
+  console.log('👤 display MEEEEE:', currentUser);
+
+     // Charger l'image URL
+  React.useEffect(() => {
+    console.log('---------- Chargement de l\'image pour l\'utilisateur:', displayUser);
+    if (displayUser.image) {
+      if (displayUser.image.startsWith('http://') || displayUser.image.startsWith('https://')) {
+
+        setImageUrl(displayUser.image);
+        setDisplayUser({
+        ...displayUser,
+        image : displayUser.image
+      })
+      }else if (displayUser.image.includes('assets')) {
+        const baseUrl = process.env.REACT_APP_API_URL
+        ? 'http://localhost:5000' : 'http://localhost:5000';
+        const newImageUrl = `${baseUrl}/${displayUser.image}`;
+        setImageUrl(newImageUrl);
+        setDisplayUser({
+        ...displayUser,
+        image : newImageUrl
+      })
+        console.log('🖼️ Image URL assets trouvée dans displayUser.image:...', imageUrl);
+      }else {
+        const baseUrl = process.env.REACT_APP_API_URL
+        ? process.env.REACT_APP_API_URL.replace('/api', '')
+        : 'http://localhost:5000';
+        const newImageUrl = `${baseUrl}/${displayUser.image}`;
+        setImageUrl(newImageUrl);
+        setDisplayUser({
+        ...displayUser,
+        image : newImageUrl
+      })
+
+
+      }
+
+    } else {
+      setImageUrl(null);
+    }
+
+  }, [currentUser]);
+
+  // Gérer le succès de la mise à jour
+  const handleUpdateSuccess = (updatedUserData) => {
+    console.log('✅ Données utilisateur mises à jour:', updatedUserData);
+
+    // Mettre à jour l'image URL
+    if (true) {
+      const baseUrl = process.env.REACT_APP_API_URL
+        ? process.env.REACT_APP_API_URL.replace('/api', '')
+        : 'http://localhost:5000';
+      const newImageUrl = `${baseUrl}/${updatedUserData.image}`;
+      setImageUrl(newImageUrl);
+      // ✅ Mettre à jour l'état local du composant
+      setDisplayUser({
+        ...displayUser,
+        ...updatedUserData,
+        firstName: updatedUserData.firstName,
+        lastName: updatedUserData.lastName,
+        plant: updatedUserData.plant,
+        function: updatedUserData.function,
+        projectFamily: updatedUserData.projectFamily,
+        diploma: updatedUserData.diploma,
+        experience: updatedUserData.experience,
+        yazakiSeniority: updatedUserData.yazakiSeniority,
+        image: newImageUrl,
+      });
+
+      // console.log('------ handleUpdateSuccess ----', newImageUrl);
+    }
+
+    // Fermer le formulaire de mise à jour
+    setShowUpdateForm(false);
+
+    console.log('✨ Profil mis à jour avec succès!');
+
+    // Rafraîchir la page pour mettre à jour toutes les données
+    // window.location.reload();
+  };
+
+
   console.log('📋 Questionnaire Data:', questionnaireData.results);
 
+  // Fonction pour ouvrir le modal hiérarchie
+  // const handleOpenHierarchyModal = (categoryId, categoryName) => {
+  //   setHierarchyModalData({
+  //     categoryId,
+  //     categoryName
+  //   });
+  //   setHierarchyModalOpen(true);
+  // };
 
+ // Fonction pour ouvrir le modal avec les données de la catégorie
+  const handleCategoryClick = (categoryName, categoryData) => {
+    setSelectedCategory({
+      name: categoryName,
+      data: categoryData
+    });
+    setModalOpen(true);
+  };
+
+  // Fonction pour fermer le modal détail
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedCategory(null);
+  };
 
   const transformResultsToArray = () => {
   const all_responses = [];
@@ -118,9 +231,9 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
 
   return all_responses;
 };
-const all_responses = transformResultsToArray();
-console.log('📊 all_responses:', all_responses);
-console.log('📏 Longueur:', all_responses.length);
+  const all_responses = transformResultsToArray();
+// console.log('📊 all_responses:', all_responses);
+// console.log('📏 Longueur:', all_responses.length);
 
 
   // Format date in English
@@ -256,30 +369,49 @@ console.log('📏 Longueur:', all_responses.length);
 
     // Si c'est un objet contenant directement des compétences (scores numériques)
     if (typeof Object.values(categoryData)[0] === 'number') {
+      // Obtenir le KPI pour cette catégorie
+
+      const categoryKPI = getKPIForCategory(decodedCategoryName);
+      const borderColorClass = getKPIBorderColor(categoryKPI);
+      // console.log('------Calcul du KPI pour la catégorie :', decodedCategoryName, 'KPI:', categoryKPI);
       return (
         <div key={currentPath} className={`mb-4 ${level > 0 ? 'ml-6' : ''}`}>
           <button
             onClick={() => toggleCategory(currentPath)}
-            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 border-2 border-gray-200"
+            className={`w-full flex items-center justify-between p-4 rounded-lg transition-all duration-200 border-2 ${borderColorClass}`}
           >
             <div className="flex items-center">
               <span className={`font-semibold text-gray-900 ${level === 0 ? 'text-lg' : 'text-base'}`}>
                 {decodedCategoryName}
               </span>
               <span className="ml-3 text-sm text-gray-600">
-                ({Object.keys(categoryData).length} compétences)
+                ({Object.keys(categoryData).length} Skills)
               </span>
             </div>
-            <svg
-              className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${
-                isExpanded ? 'transform rotate-180' : ''
-              }`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-3">
+              {/* Badge KPI */}
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                categoryKPI == null ? '' :
+                categoryKPI >= 80 ? 'bg-green-500 text-white' :
+                categoryKPI >= 60 ? 'bg-yellow-500 text-white' :
+                categoryKPI >= 40 ? 'bg-orange-500 text-white' :
+                categoryKPI <= 40 ? 'bg-red-500 text-white' : ''
+              }`}>
+                {categoryKPI !== null ? `${categoryKPI}%` : ''}
+              </span>
+
+
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${
+                  isExpanded ? 'transform rotate-180' : ''
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </button>
 
           {isExpanded && (
@@ -343,25 +475,40 @@ console.log('📏 Longueur:', all_responses.length);
     }
 
     // Si c'est une sous-catégorie
+    const categoryKPI = getKPIForCategory(decodedCategoryName);
+    const borderColorClass = getKPIBorderColor(categoryKPI);
+    // console.log('------Calcul du KPI pour la catégorie :', decodedCategoryName, 'KPI:', categoryKPI);
     return (
       <div key={currentPath} className={`mb-4 ${level > 0 ? 'ml-6' : ''}`}>
         <button
           onClick={() => toggleCategory(currentPath)}
-          className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-gray-100 to-gray-50 hover:from-gray-200 hover:to-gray-100 rounded-lg transition-all duration-200 border-2 border-gray-300"
+          className={`w-full flex items-center justify-between p-4 rounded-lg transition-all duration-200 border-2 ${borderColorClass}`}
         >
           <span className={`font-bold text-gray-900 ${level === 0 ? 'text-xl' : 'text-lg'}`}>
             {decodedCategoryName}
           </span>
-          <svg
-            className={`w-6 h-6 text-gray-600 transition-transform duration-200 ${
-              isExpanded ? 'transform rotate-180' : ''
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
+          <div className="flex items-center gap-3">
+              {/* Badge KPI */}
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                categoryKPI == null ? '' :
+                categoryKPI >= 80 ? 'bg-green-500 text-white' :
+                categoryKPI >= 60 ? 'bg-yellow-500 text-white' :
+                categoryKPI >= 40 ? 'bg-orange-500 text-white' :
+                categoryKPI <= 40 ? 'bg-red-500 text-white' : ''
+              }`}>
+                {categoryKPI !== null ? `${categoryKPI}%` : ''}
+              </span>
+            <svg
+              className={`w-6 h-6 text-gray-600 transition-transform duration-200 ${
+                isExpanded ? 'transform rotate-180' : ''
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </button>
 
         {isExpanded && (
@@ -375,32 +522,126 @@ console.log('📏 Longueur:', all_responses.length);
     );
   };
 
+  const getKPIBgColor = (percentage) => {
+    if (percentage >= 80) return 'bg-green-50';
+    if (percentage >= 60) return 'bg-yellow-50';
+    if (percentage >= 40) return 'bg-orange-50';
+    return 'bg-red-50';
+  };
+
+  const getKPIForCategory = (categoryName) => {
+    // console.log('📊 KPIs:', categoryName);
+    switch (categoryName) {
+      case 'Technical Skills':
+        return kpis.technicalCapabilityRatioOverallPP;
+      case 'Soft Skills':
+        return kpis.softSkillsRatio;
+      case 'Management Skills':
+        return kpis.managementSkillsRatio;
+      case 'Behavioral Traits':
+        return kpis.behavioralTraitsRatio;
+      case 'Communication Skills':
+        return kpis.communicationSkillsRatio;
+      default:
+        return null;
+    }
+  };
+
+  const getKPIBorderColor = (percentage) => {
+    if (percentage == null) return 'border-gray-200 bg-white';
+    if (percentage >= 80) return 'border-green-300 bg-gradient-to-r from-green-50 to-green-100';
+    if (percentage >= 60) return 'border-yellow-300 bg-gradient-to-r from-yellow-50 to-yellow-100';
+    if (percentage >= 40) return 'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100';
+    if (percentage <= 40) return 'border-red-300 bg-gradient-to-r from-red-50 to-red-100';
+
+  };
+
 
 
   /**
    * Tableaux de pondération pour chaque fonction (1 = tâche accountable, 0 = non accountable)
    * Chaque tableau correspond aux compétences dans l'ordre du questionnaire
    */
+// const ACCOUNTABILITY_ARRAYS = {
+//   'IE Supervisor':         [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'IE Responsible':        [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'IE Technician':         [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
+//   'PE Supervisor':         [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'PE Responsible':        [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'PE Technician':         [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
+//   'PFMEA':                 [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'Autocad':               [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+//   'PP Team Manager' :      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+// };
+
 const ACCOUNTABILITY_ARRAYS = {
-  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'IE Responsible':  [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
-  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'PE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0],
-  'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  'IE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1],
+  'IE Responsible': [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1],
+  'IE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1,
+        0],
+  'PE Supervisor': [1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1,
+        0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1],
+  'PE Responsible': [1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+        1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1],
+  'PE Technician': [0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+        1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1,
+        0],
+  'PFMEA': [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'SAP & Data Management': [0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1],
+  'Autocad': [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+        1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  'PP Team Manager' :      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 };
+// Object.entries(ACCOUNTABILITY_ARRAYS).forEach(([fonction, array]) => {
+//   console.log(`${fonction}: ${array.length} compétences`);
+// });
+
 
   /**
    * Calculer les indicateurs de performance
    */
   const calculateKPIs = () => {
     // Récupérer la fonction de l'utilisateur
-    const userFunction = currentUser?.fonction || currentUser?.function || '';
+    const userFunction = displayUser?.fonction || displayUser?.function || '';
     const accountabilityArray = ACCOUNTABILITY_ARRAYS[userFunction] || [];
-
     // ============================================
     // Fonction utilitaire pour obtenir max value selon l'index
     // ============================================
@@ -427,8 +668,8 @@ const ACCOUNTABILITY_ARRAYS = {
 
     for (let i = TECHNICAL_SKILLS_START; i <= TECHNICAL_SKILLS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
-      console.log('Response[', i, ']:', response);
-      const accountability = accountabilityArray[i] || 0;
+      // console.log('Response[', i, ']:', response);
+      const accountability = accountabilityArray[i];
 
       if (response !== -1 && response !== null && response !== undefined) {
         technicalSum += response * accountability;
@@ -439,14 +680,14 @@ const ACCOUNTABILITY_ARRAYS = {
         technicalSum += 0 * accountability;
         technicalMaxSum += accountability * TECHNICAL_MAX_VALUE;
       }
-      // console.log('  -> technicalSum:', technicalSum, 'technicalMaxSum:', technicalMaxSum);
+      console.log('  -> technicalSum:', technicalSum, 'response:', response, 'accountability:', accountability);
 
     }
 
     const technicalCapabilityRatioOverallPP = technicalMaxSum > 0
       ? Math.round((technicalSum / technicalMaxSum) * 100)
       : 0;
-
+    console.log('technicalCapabilityRatioOverallPP:', technicalCapabilityRatioOverallPP);
     // ============================================
     // 2. Calcul Soft Skills Ratio (indices 83 à 86)
     // ============================================
@@ -458,8 +699,8 @@ const ACCOUNTABILITY_ARRAYS = {
 
     for (let i = SOFT_SKILLS_START; i <= SOFT_SKILLS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
-      const accountability = accountabilityArray[i] || 0;
-
+      const accountability = accountabilityArray[i];
+      // console.log('..Soft Skills Response[', i, ']:', response, '// accountability:', accountability);
       if (response !== -1 && response !== null && response !== undefined) {
         softSkillsSum += response * accountability;
         softSkillsMaxSum += accountability * SOFT_SKILLS_MAX_VALUE;
@@ -486,7 +727,8 @@ const ACCOUNTABILITY_ARRAYS = {
 
     for (let i = MANAGEMENT_SKILLS_START; i <= MANAGEMENT_SKILLS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
-      const accountability = accountabilityArray[i] || 0;
+      const accountability = accountabilityArray[i];
+      // console.log('..Management Skills Response[', i, ']:', response, '// accountability:', accountability);
 
       if (response !== -1 && response !== null && response !== undefined) {
         managementSkillsSum += response * accountability;
@@ -502,7 +744,7 @@ const ACCOUNTABILITY_ARRAYS = {
     const managementSkillsRatio = managementSkillsMaxSum > 0
       ? Math.round((managementSkillsSum / managementSkillsMaxSum) * 100)
       : 0;
-
+    console.log('managementSkillsRatio:', managementSkillsRatio);
     // ============================================
     // 4. Calcul Behavioral Traits Ratio (indices 93 à 100)
     // ============================================
@@ -514,7 +756,7 @@ const ACCOUNTABILITY_ARRAYS = {
 
     for (let i = BEHAVIORAL_TRAITS_START; i <= BEHAVIORAL_TRAITS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
-      const accountability = accountabilityArray[i] || 0;
+      const accountability = accountabilityArray[i];
 
       if (response !== -1 && response !== null && response !== undefined) {
         behavioralTraitsSum += response * accountability;
@@ -539,11 +781,11 @@ const ACCOUNTABILITY_ARRAYS = {
     const COMMUNICATION_SKILLS_MAX_VALUE = 4;
     let communicationSkillsSum = 0;
     let communicationSkillsMaxSum = 0;
-
+    // console.log('Length of accountabilityArray:', accountabilityArray.length);
     for (let i = COMMUNICATION_SKILLS_START; i <= COMMUNICATION_SKILLS_END && i < all_responses.length; i++) {
       const response = all_responses[i];
-      const accountability = accountabilityArray[i] || 0;
-      console.log('Response[', i, ']:', response, 'accountability:', accountability);
+      const accountability = accountabilityArray[i];
+      // console.log('... Response[', i, ']:', response, 'accountability:', accountability);
       if (response !== -1 && response !== null && response !== undefined) {
         communicationSkillsSum += response * accountability;
         communicationSkillsMaxSum += accountability * COMMUNICATION_SKILLS_MAX_VALUE;
@@ -553,7 +795,7 @@ const ACCOUNTABILITY_ARRAYS = {
         communicationSkillsSum += 0 * accountability;
         communicationSkillsMaxSum += accountability * COMMUNICATION_SKILLS_MAX_VALUE;
       }
-      console.log('  -> communicationSkillsSum:', communicationSkillsSum, 'accountability:', accountability);
+      // console.log('  -> communicationSkillsSum:', communicationSkillsSum, 'accountability:', accountability);
     }
 
     const communicationSkillsRatio = communicationSkillsMaxSum > 0
@@ -568,7 +810,7 @@ const ACCOUNTABILITY_ARRAYS = {
 
     for (let i = 0; i < all_responses.length; i++) {
       const response = all_responses[i];
-      const accountability = accountabilityArray[i] || 0;
+      const accountability = accountabilityArray[i];
       const maxValue = getMaxValueForIndex(i);
 
       if (response !== -1 && response !== null && response !== undefined) {
@@ -661,6 +903,7 @@ const ACCOUNTABILITY_ARRAYS = {
   }, [currentUser?.matricule, kpis]);
 
   React.useEffect(() => {
+
   if (kpis) {
     saveKPIsToDatabase();
   }
@@ -668,12 +911,50 @@ const ACCOUNTABILITY_ARRAYS = {
   /**
    * Obtenir la couleur de fond selon le pourcentage
    */
-  const getKPIBgColor = (percentage) => {
-    if (percentage >= 80) return 'bg-green-50';
-    if (percentage >= 60) return 'bg-yellow-50';
-    if (percentage >= 40) return 'bg-orange-50';
-    return 'bg-red-50';
-  };
+  // const getKPIBgColor = (percentage) => {
+  //   if (percentage >= 80) return 'bg-green-50';
+  //   if (percentage >= 60) return 'bg-yellow-50';
+  //   if (percentage >= 40) return 'bg-orange-50';
+  //   return 'bg-red-50';
+  // };
+
+  // const getKPIForCategory = (categoryName) => {
+  //   switch (categoryName) {
+  //     case 'Technical Skills':
+  //       return kpis.technicalCapabilityRatioOverallPP;
+  //     case 'Soft Skills':
+  //       return kpis.softSkillsRatio;
+  //     case 'Management Skills':
+  //       return kpis.managementSkillsRatio;
+  //     case 'Behavioral Traits':
+  //       return kpis.behavioralTraitsRatio;
+  //     case 'Communication Skills':
+  //       return kpis.communicationSkillsRatio;
+  //     default:
+  //       return 0;
+  //   }
+  // };
+
+  // const getKPIBorderColor = (percentage) => {
+  //   if (percentage >= 80) return 'border-green-300 bg-gradient-to-r from-green-50 to-green-100';
+  //   if (percentage >= 60) return 'border-yellow-300 bg-gradient-to-r from-yellow-50 to-yellow-100';
+  //   if (percentage >= 40) return 'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100';
+  //   return 'border-red-300 bg-gradient-to-r from-red-50 to-red-100';
+  // };
+
+
+
+  // Si on affiche le formulaire de mise à jour
+  if (showUpdateForm) {
+    return (
+      <UpdateCollaboratorForm
+        currentUser={displayUser}
+        onBack={() => setShowUpdateForm(false)}
+        onSuccess={handleUpdateSuccess}
+      />
+    );
+  }
+
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
@@ -685,11 +966,53 @@ const ACCOUNTABILITY_ARRAYS = {
               <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
               Skills Questionnaire
             </h2>
-            {currentUser && (
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Employee</p>
-                <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
-                <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
+            {displayUser && (
+              <div className="flex items-center gap-4">
+                {/* Bouton de modification */}
+                <button
+                  type="button"
+                  onClick={() => setShowUpdateForm(true)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 group"
+                  title="Update employee information"
+                >
+                  <svg className="w-6 h-6 text-gray-600 group-hover:text-yazaki-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+
+                {/* Informations et photo */}
+                <div className="flex items-center gap-6">
+                  {/* Informations textuelles */}
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-yazaki-red">{displayUser.matricule}</p>
+                    <p className="text-sm text-gray-600">{displayUser.firstName} {displayUser.lastName}</p>
+                  </div>
+
+                  {/* Photo de profil */
+                  console.log('Display User Image:', displayUser.image)
+
+                  }
+                  <div className="flex-shrink-0">
+                    {displayUser.image ? (
+                      <img
+                        src={displayUser.image}
+                        alt={`${displayUser.firstName} ${displayUser.lastName}`}
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-yazaki-red shadow-md hover:shadow-lg transition-shadow duration-200"
+                        style={{
+                          objectFit: 'cover',
+                          objectPosition: '50% 30%',
+                        }}
+                        title={`${displayUser.firstName} ${displayUser.lastName}`}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-yazaki-red to-red-600 flex items-center justify-center shadow-md">
+                        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -829,8 +1152,11 @@ const ACCOUNTABILITY_ARRAYS = {
             </div>
           </div>
 
-          {/* 3. Technical Capability Ratio Overall PP */}
-          <div className={`${getKPIBgColor(kpis.technicalCapabilityRatioOverallPP)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
+          {/* 3. Technical Capability Ratio Overall PP */
+          console.log('++++++', kpis)
+          }
+          <div className={`${getKPIBgColor(kpis.technicalCapabilityRatioOverallPP)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer`}
+          onClick={() => handleCategoryClick('Technical Skills', results['Technical Skills'] || {})}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
@@ -858,7 +1184,8 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
 
           {/* 4. Soft Skills Ratio */}
-          <div className={`${getKPIBgColor(kpis.softSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
+          <div className={`${getKPIBgColor(kpis.softSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200  cursor-pointer`}
+          onClick={() => handleCategoryClick('Soft Skills', results['Soft Skills'] || {})}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
@@ -885,7 +1212,9 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
 
           {/* 5. Management Skills Ratio */}
-          <div className={`${getKPIBgColor(kpis.managementSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
+          <div className={`${getKPIBgColor(kpis.managementSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer`}
+          onClick={() => handleCategoryClick('Management Skills', results['Management Skills'] || {})}>
+            {console.log('------ Rendering Management Skills KPI with ratio:', kpis.managementSkillsRatio)}
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
@@ -912,7 +1241,8 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
 
           {/* 6. Behavioral Traits Ratio */}
-          <div className={`${getKPIBgColor(kpis.behavioralTraitsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
+          <div className={`${getKPIBgColor(kpis.behavioralTraitsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer`}
+          onClick={() => handleCategoryClick('Behavioral Traits', results['Behavioral Traits'] || {})}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
@@ -939,7 +1269,8 @@ const ACCOUNTABILITY_ARRAYS = {
           </div>
 
           {/* 7. Communication Skills Ratio */}
-          <div className={`${getKPIBgColor(kpis.communicationSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200`}>
+          <div className={`${getKPIBgColor(kpis.communicationSkillsRatio)} rounded-xl p-5 border-2 border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer`}
+          onClick={() => handleCategoryClick('Communication Skills', results['Communication Skills'] || {})}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
@@ -1018,7 +1349,7 @@ const ACCOUNTABILITY_ARRAYS = {
 
               <button
                 type="button"
-                onClick={() => onEdit({ editMode: 'all' })}
+                onClick={() => onEdit({ editMode: 'all', currentUser: displayUser })}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1043,6 +1374,15 @@ const ACCOUNTABILITY_ARRAYS = {
           )}
         </div>
       </div>
+
+
+      {/* Modal */}
+      <CategoryDetailModal
+        isOpen={modalOpen}
+        categoryName={selectedCategory?.name || ''}
+        categoryData={selectedCategory?.data || {}}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

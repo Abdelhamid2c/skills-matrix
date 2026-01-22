@@ -41,7 +41,6 @@ export const decodeFirebaseKey = (key) => {
   Object.entries(REVERSE_CHARS).forEach(([encoded, original]) => {
     decoded = decoded.split(encoded).join(original);
   });
-
   return decoded;
 };
 

@@ -1,13 +1,13 @@
 /**
- * CollaboratorForm - Direct creation in users
+ * UpdateCollaboratorForm - Mise à jour des informations du collaborateur
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormInput from './FormInput';
 import FormSelect from './FormSelect';
-import { createCollaborator } from '../api/collaboratorService';
+import { updateCollaborator, getCollaboratorByMatricule } from '../api/collaboratorService';
 
-const CollaboratorForm = ({ currentUser, onBack }) => {
+const UpdateCollaboratorForm = ({ currentUser, onBack, onSuccess }) => {
   const [formData, setFormData] = useState({
     matricule: '',
     firstName: '',
@@ -22,13 +22,13 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     yazakiSeniority: '',
     profileImage: null,
     profileImagePreview: null,
+    currentImageUrl: null,
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submittedData, setSubmittedData] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   const plantOptions = [
     { value: '', label: 'Select a plant' },
@@ -63,6 +63,60 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     { value: 'Other', label: 'Other' },
   ];
 
+  // Charger les données du collaborateur au montage
+  useEffect(() => {
+    const loadCollaboratorData = async () => {
+      if (!currentUser || !currentUser.matricule) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        console.log('🔍 Chargement des données du collaborateur:', currentUser.matricule);
+
+        const response = await getCollaboratorByMatricule(currentUser.matricule);
+
+        if (response && response.data) {
+          const userData = response.data;
+          console.log('✅ Données chargées:', userData);
+
+          // Construire l'URL complète de l'image si elle existe
+          let imageUrl = null;
+          if (userData.image) {
+            const baseUrl = process.env.REACT_APP_API_URL
+              ? process.env.REACT_APP_API_URL.replace('/api', '')
+              : 'http://localhost:5000';
+            imageUrl = `${baseUrl}/${userData.image}`;
+          }
+
+          setFormData({
+            matricule: userData.matricule || '',
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            plant: userData.plant || '',
+            function: userData.function || '',
+            customFunction: userData.function === 'Other' ? userData.function : '',
+            projectFamily: userData.projectFamily || '',
+            diploma: userData.diploma || '',
+            customDiploma: userData.diploma === 'Other' ? userData.diploma : '',
+            experience: userData.experience?.toString() || '',
+            yazakiSeniority: userData.yazakiSeniority?.toString() || '',
+            profileImage: null,
+            profileImagePreview: null,
+            currentImageUrl: imageUrl,
+          });
+        }
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement:', error);
+        setErrors({ submit: error.message });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCollaboratorData();
+  }, [currentUser]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -86,10 +140,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.matricule.trim()) {
-      newErrors.matricule = 'Matricule is required';
-    }
 
     if (!formData.firstName.trim() || formData.firstName.trim().length < 2) {
       newErrors.firstName = 'First name must be at least 2 characters';
@@ -146,7 +196,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
     if (!file) return;
 
-    // Validation du type de fichier
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       setErrors(prev => ({
@@ -156,7 +205,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       return;
     }
 
-    // Validation de la taille (< 1MB = 1048576 bytes)
     const maxSize = 1024 * 1024; // 1MB
     if (file.size > maxSize) {
       setErrors(prev => ({
@@ -166,7 +214,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       return;
     }
 
-    // Créer une prévisualisation
     const reader = new FileReader();
     reader.onloadend = () => {
       setFormData(prev => ({
@@ -188,10 +235,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       profileImage: null,
       profileImagePreview: null
     }));
-    setErrors(prev => ({
-      ...prev,
-      profileImage: ''
-    }));
   };
 
   const handleSubmit = async (e) => {
@@ -204,11 +247,8 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
     setIsSubmitting(true);
 
     try {
-      // Créer un FormData avec TOUS les champs
       const formDataToSend = new FormData();
 
-      // Ajouter les données du collaborateur
-      formDataToSend.append('matricule', formData.matricule.toUpperCase());
       formDataToSend.append('firstName', formData.firstName.trim());
       formDataToSend.append('lastName', formData.lastName.trim());
       formDataToSend.append('plant', formData.plant);
@@ -218,22 +258,18 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       formDataToSend.append('experience', parseFloat(formData.experience).toString());
       formDataToSend.append('yazakiSeniority', parseFloat(formData.yazakiSeniority).toString());
 
-      // Ajouter l'image si elle existe (clé: 'image')
       if (formData.profileImage) {
         formDataToSend.append('image', formData.profileImage);
-        console.log('📸 Image ajoutée au FormData:', formData.profileImage.name);
+        console.log('📸 Nouvelle image ajoutée:', formData.profileImage.name);
       }
 
-      console.log('📤 Envoi du formulaire avec FormData...');
+      console.log('📤 Envoi de la mise à jour...');
 
-      // Envoyer au serveur
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/collaborators`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/collaborators/${formData.matricule}`,
         {
-          method: 'POST',
+          method: 'PUT',
           body: formDataToSend,
-          // IMPORTANT: Ne pas définir Content-Type, le navigateur le fera automatiquement
-          // avec la bonne valeur multipart/form-data
         }
       );
 
@@ -242,45 +278,47 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
       console.log('📥 Réponse du serveur:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Creation failed');
+        throw new Error(data.message || 'Update failed');
       }
 
       if (data.success) {
-        setSubmittedData(data.data);
         setIsSubmitted(true);
 
         setTimeout(() => {
-          setFormData({
-            matricule: '',
-            firstName: '',
-            lastName: '',
-            plant: '',
-            function: '',
-            customFunction: '',
-            projectFamily: '',
-            diploma: '',
-            customDiploma: '',
-            experience: '',
-            yazakiSeniority: '',
-            profileImage: null,
-            profileImagePreview: null,
-          });
-          setIsSubmitted(false);
-          setSubmittedData(null);
-          setUploadProgress(0);
-        }, 3000);
+          // ✅ Appeler onSuccess sans recharger la page
+          if (onSuccess) {
+            onSuccess({
+              ...currentUser,
+              ...data.data,
+              image: data.data.image,
+            });
+          } else if (onBack) {
+            onBack();
+          }
+        }, 2000);
       }
     } catch (error) {
       console.error('❌ Erreur:', error);
       setErrors({
-        submit: error.message || 'An error occurred while creating the collaborator'
+        submit: error.message || 'An error occurred while updating the collaborator'
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isSubmitted && submittedData) {
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto animate-fade-in">
+        <div className="card text-center py-16">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yazaki-red mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading collaborator data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
         <div className="card text-center">
@@ -293,31 +331,21 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
           </div>
 
           <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            Collaborator registered!
+            Information updated!
           </h2>
-          <div className="mb-4 p-4 bg-yazaki-light-gray rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Matricule</p>
-            <p className="text-2xl font-bold text-yazaki-red">{submittedData.matricule}</p>
-          </div>
-          <p className="text-lg text-gray-700">
-            <span className="font-semibold">{submittedData.firstName} {submittedData.lastName}</span>
+          <p className="text-lg text-gray-700 mb-6">
+            <span className="font-semibold">{formData.firstName} {formData.lastName}</span>
           </p>
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
-              🔑 Password: <strong>{submittedData.matricule}</strong>
-            </p>
-          </div>
 
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="mt-6 btn-secondary"
+              className="btn-secondary"
             >
-              Back to home
+              Back to questionnaire
             </button>
-          )
-          }
+          )}
         </div>
       </div>
     );
@@ -335,18 +363,18 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back to home
+            Back to questionnaire
           </button>
         )}
 
         <div className="mb-8 border-b border-gray-200 pb-6">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <span className="w-2 h-8 bg-yazaki-red rounded-full mr-3"></span>
-            New Employee
+            Update Employee Information
           </h2>
           <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded-lg ml-5">
             <p className="text-sm text-blue-800">
-              ℹ️ The account will be created with the matricule as password
+              ℹ️ Update your personal and professional information
             </p>
           </div>
         </div>
@@ -358,13 +386,72 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
               <svg className="section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Profile Photo (Optional)
+              Profile Photo
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Zone de chargement */}
               <div className="md:col-span-2">
-                {!formData.profileImagePreview ? (
+                {formData.profileImagePreview ? (
+                  // Image modifiée affichée
+                  <div className="relative group">
+                    <img
+                      src={formData.profileImagePreview}
+                      alt="Profile preview"
+                      className="w-full h-48 object-cover rounded-lg border-2 border-yazaki-red"
+                      style={{
+                        objectFit: 'cover',
+                        objectPosition: '50% 30%',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
+                      title="Remove new image"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <label className="absolute bottom-2 left-2 bg-white text-gray-700 px-3 py-1 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-100 transition-colors">
+                      Change
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleImageChange}
+                        disabled={isSubmitting}
+                      />
+                    </label>
+                  </div>
+                ) : formData.currentImageUrl ? (
+                  // Image actuelle affichée avec possibilité de modifier
+                  <div className="relative group">
+                    <img
+                      src={formData.currentImageUrl}
+                      alt="Current profile"
+                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-300 cursor-pointer group-hover:border-yazaki-red transition-all duration-200"
+                      style={{
+                        objectFit: 'cover',
+                        objectPosition: '50% 30%',
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
+                      <label className="bg-white text-gray-700 px-4 py-2 rounded-lg font-semibold cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-100">
+                        Change Photo
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleImageChange}
+                          disabled={isSubmitting}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : (
+                  // Pas d'image - Zone d'upload
                   <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-yazaki-red hover:bg-red-50 transition-all duration-200">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <svg className="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,34 +470,6 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                       disabled={isSubmitting}
                     />
                   </label>
-                ) : (
-                  <div className="relative group">
-                    <img
-                      src={formData.profileImagePreview}
-                      alt="Profile preview"
-                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-600"
-                      title="Remove image"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                    <label className="absolute bottom-2 left-2 bg-white text-gray-700 px-3 py-1 rounded-lg text-sm font-semibold cursor-pointer hover:bg-gray-100 transition-colors">
-                      Change
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleImageChange}
-                        disabled={isSubmitting}
-                      />
-                    </label>
-                  </div>
                 )}
 
                 {errors.profileImage && (
@@ -472,11 +531,11 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                   name="matricule"
                   type="text"
                   value={formData.matricule}
-                  onChange={handleChange}
-                  placeholder="Ex: YMM12345"
-                  error={errors.matricule}
-                  required
+                  disabled
+                  placeholder="Matricule"
+                  className="bg-gray-100"
                 />
+                <p className="mt-1 text-xs text-gray-500">⚠️ Matricule cannot be changed</p>
               </div>
 
               <FormInput
@@ -656,32 +715,43 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary flex items-center justify-center"
-          >
-            {isSubmitting ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Saving...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Save Collaborator
-              </>
+          <div className="flex gap-4 pt-6">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex-1 btn-secondary"
+              >
+                Cancel
+              </button>
             )}
-          </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 btn-primary flex items-center justify-center"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 };
 
-export default CollaboratorForm;
+export default UpdateCollaboratorForm;

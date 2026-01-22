@@ -10,9 +10,10 @@ import Login from './components/Login';
 import Loading from './components/Loading';
 import Questionnaire from './components/Questionnaire';
 import CollaboratorForm from './components/CollaboratorForm';
+import SkillsMatrix from './components/Skills_Def_Component';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('welcome'); // welcome, login, loading, questionnaire, form
+  const [currentPage, setCurrentPage] = useState('welcome'); // welcome, login, loading, questionnaire, form, skillsMatrix
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -25,6 +26,11 @@ function App() {
     console.log('Navigation vers Formulaire (Sign Up)');
     // Sign In = Accès direct au formulaire pour créer un nouveau collaborateur
     setCurrentPage('form');
+  };
+
+  const handleSkillsMatrixClick = () => {
+    console.log('Navigation vers Skills Matrix');
+    setCurrentPage('skillsMatrix');
   };
 
   const handleBackToWelcome = () => {
@@ -70,6 +76,7 @@ function App() {
       <Header
         onLoginClick={handleLoginClick}
         onSignInClick={handleSignInClick}
+        onSkillsMatrixClick={handleSkillsMatrixClick}
         onBackClick={handleBackToWelcome}
         showAuthButtons={currentPage === 'welcome'}
         showBackButton={currentPage !== 'welcome' && currentPage !== 'loading'}
@@ -105,6 +112,10 @@ function App() {
             onBack={handleBackToWelcome}
           />
         )}
+
+        {currentPage === 'skillsMatrix' && (
+          <SkillsMatrix onBack={handleBackToWelcome} />
+        )}
       </main>
 
       {/* Pied de page */}
@@ -113,7 +124,7 @@ function App() {
         <p className="mt-1 text-xs">Tous droits réservés</p>
         {isAuthenticated && currentUser && currentPage !== 'loading' && (
           <p className="mt-2 text-xs text-yazaki-red font-semibold">
-            Connecté en tant que: {currentUser.matricule}
+            Logged in as: {currentUser.matricule}
           </p>
         )}
       </footer>

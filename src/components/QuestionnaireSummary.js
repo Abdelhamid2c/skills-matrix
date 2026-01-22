@@ -269,13 +269,40 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
               <span className="w-2 h-8 bg-green-600 rounded-full mr-3"></span>
               Questionnaire Summary
             </h2>
-            {currentUser && (
+          {currentUser && (
+            <div className="flex items-center gap-6">
+              {/* Informations textuelles */}
               <div className="text-right">
                 <p className="text-sm text-gray-600">Employee</p>
                 <p className="text-lg font-bold text-yazaki-red">{currentUser.matricule}</p>
                 <p className="text-sm text-gray-600">{currentUser.firstName} {currentUser.lastName}</p>
               </div>
-            )}
+
+              {/* Photo de profil */}
+              <div className="flex-shrink-0">
+                {console.log('Current User Image:', currentUser.image)}
+                {currentUser.image ? (
+                  <img
+                    // src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000'}/${currentUser.image}`}
+                    src = {currentUser.image}
+                    alt={`${currentUser.firstName} ${currentUser.lastName}`}
+                    className="w-16 h-16 rounded-lg object-cover border-2 border-green-600 shadow-md"
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: '50% 30%',
+                    }}
+                    title={`${currentUser.firstName} ${currentUser.lastName}`}
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
+                    <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           </div>
 
           {/* Global statistics */}
@@ -292,10 +319,10 @@ const QuestionnaireSummary = ({ currentUser, answers, onBack, onSuccess }) => {
               <p className="text-sm text-yellow-700 font-semibold mb-1">Not Assessed</p>
               <p className="text-3xl font-bold text-yellow-900">{stats.unansweredSkills}</p>
             </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-200">
+            {/* <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border-2 border-purple-200">
               <p className="text-sm text-purple-700 font-semibold mb-1">Average</p>
               <p className="text-3xl font-bold text-purple-900">{stats.averageScore}</p>
-            </div>
+            </div> */}
           </div>
 
           {/* Warning if some skills are not assessed */}

@@ -4,7 +4,11 @@
 
 import React from 'react';
 
-const Header = ({ onLoginClick, onSignInClick, showAuthButtons = true, onBackClick, showBackButton = false }) => {
+const Header = ({ onLoginClick, onSignInClick, showAuthButtons = true, onBackClick, showBackButton = false, onSkillsMatrixClick }) => {
+
+  const handleSkillsMatrixClick = () => {
+    onSkillsMatrixClick();
+  };
 
   const handleLoginClick = (e) => {
     e.preventDefault();
@@ -87,6 +91,12 @@ const Header = ({ onLoginClick, onSignInClick, showAuthButtons = true, onBackCli
               >
                 Sign Up
               </button>
+              <button
+              onClick={handleSkillsMatrixClick}
+              className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Skills Matrix
+            </button>
             </div>
           )}
 

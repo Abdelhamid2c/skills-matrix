@@ -143,29 +143,69 @@ export const skillsData = {
 /**
  * Échelle d'évaluation standard (0-4) - Technical Skills
  */
+// export const scoreScale = [
+//   { value: 0, label: '0 - No knowledge', color: 'bg-gray-100 text-gray-800', description: 'No knowledge or experience' },
+//   { value: 1, label: '1 - Basic knowledge', color: 'bg-red-100 text-red-800', description: 'Limited theoretical knowledge' },
+//   { value: 2, label: '2 - Intermediate knowledge', color: 'bg-orange-100 text-orange-800', description: 'Can execute with supervision' },
+//   { value: 3, label: '3 - Good mastery', color: 'bg-yellow-100 text-yellow-800', description: 'Autonomous in most situations' },
+//   { value: 4, label: '4 - Expert', color: 'bg-green-100 text-green-800', description: 'Complete mastery, able to train others' }
+// ];
+// export const scoreScale = [
+//   { value: 0, label: '0 - No knowledge', color: 'bg-red-300 text-red-900', description: 'No knowledge or experience' },
+//   { value: 1, label: '1 - Basic knowledge', color: 'bg-red-100 text-red-800', description: 'Limited theoretical knowledge' },
+//   { value: 2, label: '2 - Intermediate knowledge', color: 'bg-yellow-100 text-yellow-800', description: 'Can execute with supervision' },
+//   { value: 3, label: '3 - Good mastery', color: 'bg-green-100 text-green-800', description: 'Autonomous in most situations' },
+//   { value: 4, label: '4 - Expert', color: 'bg-green-500 text-white', description: 'Complete mastery, able to train others' }
+// ];
 export const scoreScale = [
-  { value: 0, label: '0 - No knowledge', color: 'bg-gray-100 text-gray-800', description: 'No knowledge or experience' },
-  { value: 1, label: '1 - Basic knowledge', color: 'bg-red-100 text-red-800', description: 'Limited theoretical knowledge' },
-  { value: 2, label: '2 - Intermediate knowledge', color: 'bg-orange-100 text-orange-800', description: 'Can execute with supervision' },
-  { value: 3, label: '3 - Good mastery', color: 'bg-yellow-100 text-yellow-800', description: 'Autonomous in most situations' },
-  { value: 4, label: '4 - Expert', color: 'bg-green-100 text-green-800', description: 'Complete mastery, able to train others' }
+  { value: 0, label: '0 - No knowledge', color: 'bg-red-300 text-black', description: 'No knowledge or experience' },
+  { value: 1, label: '1 - Basic knowledge', color: 'bg-red-100 text-black', description: 'Limited theoretical knowledge' },
+  { value: 2, label: '2 - Intermediate knowledge', color: 'bg-yellow-100 text-black', description: 'Can execute with supervision' },
+  { value: 3, label: '3 - Good mastery', color: 'bg-green-100 text-black', description: 'Autonomous in most situations' },
+  { value: 4, label: '4 - Expert', color: 'bg-green-500 text-black', description: 'Complete mastery, able to train others' }
 ];
-
 /**
  * Échelle d'évaluation pour Behavioral Traits et Communication Skills (0-10)
  */
+// export const behavioralScoreScale = [
+//   { value: 0, label: '0 - Not at all', color: 'bg-red-100 text-red-800', description: 'No demonstration of this skill' },
+//   { value: 1, label: '1 - Very weak', color: 'bg-red-100 text-red-800', description: 'Rarely observed' },
+//   { value: 2, label: '2 - Weak', color: 'bg-red-100 text-red-800', description: 'Underdeveloped' },
+//   { value: 3, label: '3 - Insufficient', color: 'bg-orange-100 text-orange-800', description: 'Below expectations' },
+//   { value: 4, label: '4 - Below average', color: 'bg-orange-100 text-orange-800', description: 'Starting to develop' },
+//   { value: 5, label: '5 - Average', color: 'bg-yellow-100 text-yellow-800', description: 'Acceptable level' },
+//   { value: 6, label: '6 - Above average', color: 'bg-yellow-100 text-yellow-800', description: 'Above average performance' },
+//   { value: 7, label: '7 - Good', color: 'bg-green-100 text-green-800', description: 'Well developed' },
+//   { value: 8, label: '8 - Very good', color: 'bg-green-100 text-green-800', description: 'High performance' },
+//   { value: 9, label: '9 - Excellent', color: 'bg-blue-100 text-blue-800', description: 'Demonstrated excellence' },
+//   { value: 10, label: '10 - Outstanding', color: 'bg-purple-100 text-purple-800', description: 'Reference model' }
+// ];
+
+// export const behavioralScoreScale = [
+//   { value: 0, label: '0 - Not at all', color: 'bg-red-200 text-red-900', description: 'No demonstration of this skill' },
+//   { value: 1, label: '1 - Very weak', color: 'bg-red-100 text-red-800', description: 'Rarely observed' },
+//   { value: 2, label: '2 - Weak', color: 'bg-red-100 text-red-800', description: 'Underdeveloped' },
+//   { value: 3, label: '3 - Insufficient', color: 'bg-orange-200 text-orange-900', description: 'Below expectations' },
+//   { value: 4, label: '4 - Below average', color: 'bg-orange-100 text-orange-800', description: 'Starting to develop' },
+//   { value: 5, label: '5 - Average', color: 'bg-yellow-100 text-yellow-800', description: 'Acceptable level' },
+//   { value: 6, label: '6 - Above average', color: 'bg-yellow-100 text-yellow-800', description: 'Above average performance' },
+//   { value: 7, label: '7 - Good', color: 'bg-green-100 text-green-800', description: 'Well developed' },
+//   { value: 8, label: '8 - Very good', color: 'bg-green-200 text-green-900', description: 'High performance' },
+//   { value: 9, label: '9 - Excellent', color: 'bg-green-400 text-white', description: 'Demonstrated excellence' },
+//   { value: 10, label: '10 - Outstanding', color: 'bg-green-500 text-white', description: 'Reference model' }
+// ];
 export const behavioralScoreScale = [
-  { value: 0, label: '0 - Not at all', color: 'bg-red-100 text-red-800', description: 'No demonstration of this skill' },
-  { value: 1, label: '1 - Very weak', color: 'bg-red-100 text-red-800', description: 'Rarely observed' },
-  { value: 2, label: '2 - Weak', color: 'bg-red-100 text-red-800', description: 'Underdeveloped' },
-  { value: 3, label: '3 - Insufficient', color: 'bg-orange-100 text-orange-800', description: 'Below expectations' },
-  { value: 4, label: '4 - Below average', color: 'bg-orange-100 text-orange-800', description: 'Starting to develop' },
-  { value: 5, label: '5 - Average', color: 'bg-yellow-100 text-yellow-800', description: 'Acceptable level' },
-  { value: 6, label: '6 - Above average', color: 'bg-yellow-100 text-yellow-800', description: 'Above average performance' },
-  { value: 7, label: '7 - Good', color: 'bg-green-100 text-green-800', description: 'Well developed' },
-  { value: 8, label: '8 - Very good', color: 'bg-green-100 text-green-800', description: 'High performance' },
-  { value: 9, label: '9 - Excellent', color: 'bg-blue-100 text-blue-800', description: 'Demonstrated excellence' },
-  { value: 10, label: '10 - Outstanding', color: 'bg-purple-100 text-purple-800', description: 'Reference model' }
+  { value: 0, label: '0 - Not at all', color: 'bg-red-200 text-black', description: 'No demonstration of this skill' },
+  { value: 1, label: '1 - Very weak', color: 'bg-red-100 text-black', description: 'Rarely observed' },
+  { value: 2, label: '2 - Weak', color: 'bg-red-100 text-black', description: 'Underdeveloped' },
+  { value: 3, label: '3 - Insufficient', color: 'bg-orange-200 text-black', description: 'Below expectations' },
+  { value: 4, label: '4 - Below average', color: 'bg-orange-100 text-black', description: 'Starting to develop' },
+  { value: 5, label: '5 - Average', color: 'bg-yellow-100 text-black', description: 'Acceptable level' },
+  { value: 6, label: '6 - Above average', color: 'bg-yellow-100 text-black', description: 'Above average performance' },
+  { value: 7, label: '7 - Good', color: 'bg-green-100 text-black', description: 'Well developed' },
+  { value: 8, label: '8 - Very good', color: 'bg-green-200 text-black', description: 'High performance' },
+  { value: 9, label: '9 - Excellent', color: 'bg-green-400 text-black', description: 'Demonstrated excellence' },
+  { value: 10, label: '10 - Outstanding', color: 'bg-green-500 text-black', description: 'Reference model' }
 ];
 
 /**
