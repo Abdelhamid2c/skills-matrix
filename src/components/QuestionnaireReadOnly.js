@@ -2048,6 +2048,15 @@ const ACCOUNTABILITY_ARRAYS = {
   //   return 'border-red-300 bg-gradient-to-r from-red-50 to-red-100';
   // };
 
+  if (showUpdateForm) {
+    return (
+      <UpdateCollaboratorForm
+        currentUser={displayUser}
+        onBack={() => setShowUpdateForm(false)}
+        onSuccess={handleUpdateSuccess}
+      />
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto animate-fade-in">
