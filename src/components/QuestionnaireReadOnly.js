@@ -1140,7 +1140,7 @@ const QuestionnaireReadOnly = ({ currentUser, questionnaireData, onBack, onEdit 
       })
       }else if (displayUser.image.includes('assets')) {
         const baseUrl = process.env.REACT_APP_API_URL
-        ? 'http://localhost:5000' : 'http://localhost:5000';
+        ? process.env.REACT_APP_API_URL : 'http://localhost:5000';
         const newImageUrl = `${baseUrl}/${displayUser.image}`;
         setImageUrl(newImageUrl);
         setDisplayUser({
