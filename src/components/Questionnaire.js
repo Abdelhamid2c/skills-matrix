@@ -817,8 +817,8 @@ const Questionnaire = ({ currentUser, onBack }) => {
                     <div className="flex-shrink-0">
                       {displayUser.image ? (
                         <img
-                          // src={`${process.env.REACT_APP_API_URL.replace('/api', '') || 'http://localhost:5000'}/${displayUser.image}`}
-                          src ={displayUser.image}
+                          src={`${process.env.REACT_APP_API_URL.replace('/api', '') || 'http://localhost:5000'}/${displayUser.image}`}
+                          // src ={displayUser.image}
                           alt={`${displayUser.firstName} ${displayUser.lastName}`}
                           className="w-16 h-16 rounded-lg object-cover border-2 border-yazaki-red shadow-md hover:shadow-lg transition-shadow duration-200"
                           style={{
