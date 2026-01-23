@@ -123,8 +123,12 @@ const UpdateCollaboratorForm = ({ currentUser, onBack, onSuccess }) => {
     let processedValue = value;
     if (name === 'experience' || name === 'yazakiSeniority') {
       processedValue = value.replace(',', '.');
-    }
-
+      // ⬇️ conversion en float
+        processedValue = processedValue === ''
+        ? ''
+        : parseFloat(processedValue);
+        }
+    
     setFormData(prev => ({
       ...prev,
       [name]: processedValue
