@@ -259,8 +259,8 @@ const UpdateCollaboratorForm = ({ currentUser, onBack, onSuccess }) => {
       formDataToSend.append('function', formData.function === 'Other' ? formData.customFunction : formData.function);
       formDataToSend.append('projectFamily', formData.projectFamily.trim());
       formDataToSend.append('diploma', formData.diploma === 'Other' ? formData.customDiploma : formData.diploma);
-      formDataToSend.append('experience', parseFloat(formData.experience).toString());
-      formDataToSend.append('yazakiSeniority', parseFloat(formData.yazakiSeniority).toString());
+      formDataToSend.append('experience', parseFloat(formData.experience));
+      formDataToSend.append('yazakiSeniority', parseFloat(formData.yazakiSeniority));
 
       if (formData.profileImage) {
         formDataToSend.append('image', formData.profileImage);
