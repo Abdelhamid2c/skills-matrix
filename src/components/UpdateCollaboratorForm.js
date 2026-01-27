@@ -123,8 +123,19 @@ const UpdateCollaboratorForm = ({ currentUser, onBack, onSuccess }) => {
     let processedValue = value;
     if (name === 'experience' || name === 'yazakiSeniority') {
       processedValue = value.replace(',', '.');
+
+      processedValue = processedValue
+      .replace(/[^\d.]/g, '') // Supprimer tout sauf chiffres et point
+      .replace(/(\..*)\./g, '$1'); // Garder seulement le premier point
+
+      // Limiter à 2 décimales maximum
+      const parts = processedValue.split('.');
+      if (parts[1] && parts[1].length > 1) {
+        processedValue = `${parts[0]}.${parts[1].slice(0, 2)}`;
+      }
+      
       // ⬇️ conversion en float
-        processedValue = processedValue === ''
+      processedValue = processedValue === ''
         ? ''
         : parseFloat(processedValue);
         }
@@ -697,7 +708,7 @@ const UpdateCollaboratorForm = ({ currentUser, onBack, onSuccess }) => {
                   pattern="[0-9]*[.,]?[0-9]*"
                   value={formData.yazakiSeniority}
                   onChange={handleChange}
-                  placeholder="Ex: 0.5 or 0,5 (6 months)"
+                  placeholder=""
                   error={errors.yazakiSeniority}
                   required
                 />
