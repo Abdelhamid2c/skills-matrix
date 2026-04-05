@@ -475,7 +475,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
                   type="text"
                   value={formData.matricule}
                   onChange={handleChange}
-                  placeholder="Ex: YMM12345"
+                  placeholder="Ex: M12345"
                   error={errors.matricule}
                   required
                 />
