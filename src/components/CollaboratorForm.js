@@ -42,6 +42,7 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
   const functionOptions = [
     { value: '', label: 'Select a function' },
     { value: 'PE Responsible', label: 'PE Responsible' },
+    { value: 'IE Responsible', label: 'IE Responsible' },
     { value: 'PE Supervisor', label: 'PE Supervisor' },
     { value: 'IE Supervisor', label: 'IE Supervisor' },
     { value: 'PE Technician', label: 'PE Technician' },
