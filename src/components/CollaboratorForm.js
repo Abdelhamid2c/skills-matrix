@@ -32,7 +32,8 @@ const CollaboratorForm = ({ currentUser, onBack }) => {
 
   const plantOptions = [
     { value: '', label: 'Select a plant' },
-    { value: 'YMM', label: 'Yazaki Morocco Meknes S.A. (YMM)' },
+    { value: 'YMM-1', label: 'Yazaki Morocco Meknes S.A. (YMM-1)' },
+    { value: 'YMM-2', label: 'Yazaki Morocco Meknes S.A. (YMM-2)' },
     { value: 'YMOK', label: 'Yazaki Kenitra S.A. (YMOK)' },
     { value: 'YMO', label: 'Yazaki Morocco S.A. (YMO)' },
     { value: 'YTU', label: 'Yazaki Tunisia S.A.R.L (YTU)' },
